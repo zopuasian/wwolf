@@ -46,10 +46,27 @@ export function roomToDbPatch(room: MultiplayerRoom) {
 export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): MultiplayerRoom {
   if (!room.state) return room;
   const viewer = room.state.players.find((p) => p.clientId === clientId) ?? null;
+  const canSeeNightTarget =
+    room.state.phase === "GAME_END" ||
+    (room.state.phase === "NIGHT_WITCH_ACTION" && viewer?.role === "Witch");
   return {
     ...room,
     state: {
       ...room.state,
+      messages: room.state.messages.filter((message) => {
+        if (message.visibility !== "wolves") return true;
+        return room.state?.phase === "GAME_END" || (!!viewer && isWolfRole(viewer.role));
+      }),
+      nightActions: {
+        lastGuardTarget: viewer?.role === "Guard" ? room.state.nightActions.lastGuardTarget : undefined,
+        wolfVotes: {},
+        wolfTarget: canSeeNightTarget ? room.state.nightActions.wolfTarget : undefined,
+        witchSave: room.state.phase === "GAME_END" ? room.state.nightActions.witchSave : undefined,
+        witchPoison: room.state.phase === "GAME_END" ? room.state.nightActions.witchPoison : undefined,
+        seerChecks: viewer?.role === "Seer"
+          ? { [clientId]: room.state.nightActions.seerChecks[clientId] ?? [] }
+          : {},
+      },
       players: room.state.players.map((player) => {
         const canSeeRole =
           player.clientId === clientId ||

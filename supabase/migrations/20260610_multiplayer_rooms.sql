@@ -2,7 +2,7 @@ create table if not exists public.multiplayer_rooms (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   host_client_id text not null,
-  player_count integer not null check (player_count between 8 and 12),
+  player_count integer not null check (player_count between 5 and 12),
   status text not null default 'lobby' check (status in ('lobby', 'playing', 'ended')),
   seats jsonb not null default '[]'::jsonb,
   state jsonb not null default '{}'::jsonb,

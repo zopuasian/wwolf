@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
-import { ensureAdminClient, supabaseAdmin } from "@/lib/supabase-admin";
-import { dbRoomToRoom, roomToDbPatch, sanitizeRoomForClient } from "@/lib/multiplayer/api";
-import { normalizeRoomCode, reduceMultiplayerAction } from "@/lib/multiplayer/engine";
+import { sanitizeRoomForClient } from "@/lib/multiplayer/api";
+import { autoAdvanceMultiplayerRoom, normalizeRoomCode, reduceMultiplayerAction } from "@/lib/multiplayer/engine";
+import { getStoredRoom, serializeStoreError, updateStoredRoomIfSeq } from "@/lib/multiplayer/room-store";
 import type { MultiplayerAction, MultiplayerRoom } from "@/lib/multiplayer/types";
 
 export const runtime = "nodejs";
 
-async function fetchRoom(code: string): Promise<MultiplayerRoom | null> {
-  const { data, error } = await supabaseAdmin
-    .from("multiplayer_rooms")
-    .select("code,host_client_id,player_count,status,seats,state,action_seq,updated_at")
-    .eq("code", code)
-    .single();
-  if (error || !data) return null;
-  return dbRoomToRoom(data);
-}
-
 export async function POST(req: Request, { params }: { params: Promise<{ code: string }> }) {
   try {
-    ensureAdminClient();
     const { code: rawCode } = await params;
     const code = normalizeRoomCode(rawCode);
     const action = (await req.json()) as MultiplayerAction;
@@ -28,26 +17,40 @@ export async function POST(req: Request, { params }: { params: Promise<{ code: s
     }
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const room = await fetchRoom(code);
+      const found = await getStoredRoom(code);
+      if (!found.ok) {
+        return NextResponse.json({ error: "Could not load room", details: serializeStoreError(found.error) }, { status: 500 });
+      }
+      const room = found.value;
       if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+
+      const roomAfterTimer = autoAdvanceMultiplayerRoom(room);
+      if (roomAfterTimer !== room) {
+        const updated = await updateStoredRoomIfSeq(code, room.actionSeq, roomAfterTimer);
+        if (!updated.ok) {
+          return NextResponse.json({ error: "Could not update room", details: serializeStoreError(updated.error) }, { status: 500 });
+        }
+        if (updated.value) {
+          return NextResponse.json({ room: sanitizeRoomForClient(updated.value, action.clientId), storage: updated.storage });
+        }
+        continue;
+      }
 
       const reducedRoom = reduceMultiplayerAction(room, action);
       const nextRoom: MultiplayerRoom =
         reducedRoom.state?.phase === "GAME_END"
           ? { ...reducedRoom, status: "ended" }
           : reducedRoom;
-      if (nextRoom === room) return NextResponse.json({ room: sanitizeRoomForClient(room, action.clientId) });
+      if (nextRoom === room) {
+        return NextResponse.json({ room: sanitizeRoomForClient(room, action.clientId), storage: found.storage });
+      }
 
-      const { data, error } = await supabaseAdmin
-        .from("multiplayer_rooms")
-        .update(roomToDbPatch(nextRoom) as never)
-        .eq("code", code)
-        .eq("action_seq", room.actionSeq)
-        .select("code,host_client_id,player_count,status,seats,state,action_seq,updated_at")
-        .single();
-
-      if (!error && data) {
-        return NextResponse.json({ room: sanitizeRoomForClient(dbRoomToRoom(data as never), action.clientId) });
+      const updated = await updateStoredRoomIfSeq(code, room.actionSeq, nextRoom);
+      if (!updated.ok) {
+        return NextResponse.json({ error: "Could not update room", details: serializeStoreError(updated.error) }, { status: 500 });
+      }
+      if (updated.value) {
+        return NextResponse.json({ room: sanitizeRoomForClient(updated.value, action.clientId), storage: updated.storage });
       }
     }
 

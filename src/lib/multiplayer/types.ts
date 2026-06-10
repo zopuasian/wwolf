@@ -40,10 +40,13 @@ export interface MultiplayerChatMessage {
   day: number;
   phase: MultiplayerPhase;
   isSystem?: boolean;
+  visibility?: "public" | "wolves";
 }
 
 export interface MultiplayerGameState {
   phase: MultiplayerPhase;
+  phaseStartedAt?: number;
+  phaseDeadlineAt?: number;
   day: number;
   players: MultiplayerPlayer[];
   messages: MultiplayerChatMessage[];
@@ -80,10 +83,12 @@ export interface MultiplayerRoom {
 
 export type MultiplayerAction =
   | { type: "START_GAME"; clientId: string }
+  | { type: "LEAVE_ROOM"; clientId: string }
   | { type: "ACK_ROLE"; clientId: string }
   | { type: "CHAT"; clientId: string; content: string }
   | { type: "NIGHT_ACTION"; clientId: string; targetSeat: number | null; witchAction?: "save" | "poison" | "pass" }
   | { type: "START_VOTE"; clientId: string }
+  | { type: "END_VOTE"; clientId: string }
   | { type: "VOTE"; clientId: string; targetSeat: number }
   | { type: "NEXT_NIGHT"; clientId: string };
 

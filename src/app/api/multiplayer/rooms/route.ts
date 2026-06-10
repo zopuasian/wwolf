@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { ensureAdminClient, supabaseAdmin } from "@/lib/supabase-admin";
 import { clampPlayerCount, createRoomCode, createSeat } from "@/lib/multiplayer/engine";
-import { dbRoomToRoom, sanitizeRoomForClient } from "@/lib/multiplayer/api";
-import type { Json } from "@/types/database";
+import { sanitizeRoomForClient } from "@/lib/multiplayer/api";
+import { createStoredRoom, serializeStoreError } from "@/lib/multiplayer/room-store";
+import type { MultiplayerRoom } from "@/lib/multiplayer/types";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    ensureAdminClient();
     const body = await req.json().catch(() => ({}));
     const clientId = String(body.clientId || "").trim();
     const displayName = String(body.displayName || "").trim();
@@ -22,27 +21,27 @@ export async function POST(req: Request) {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const code = createRoomCode();
       const seat = createSeat(clientId, displayName, 0);
-      const { data, error } = await supabaseAdmin
-        .from("multiplayer_rooms")
-        .insert({
-          code,
-          host_client_id: clientId,
-          player_count: playerCount,
-          status: "lobby",
-          seats: [seat] as unknown as Json,
-          state: {} as Json,
-          action_seq: 0,
-        } as never)
-        .select("code,host_client_id,player_count,status,seats,state,action_seq,updated_at")
-        .single();
+      const room: MultiplayerRoom = {
+        code,
+        hostClientId: clientId,
+        playerCount,
+        status: "lobby",
+        seats: [seat],
+        state: null,
+        actionSeq: 0,
+      };
+      const result = await createStoredRoom(room);
 
-      if (!error && data) {
-        return NextResponse.json({ room: sanitizeRoomForClient(dbRoomToRoom(data as never), clientId) });
+      if (result.ok) {
+        return NextResponse.json({
+          room: sanitizeRoomForClient(result.value, clientId),
+          storage: result.storage,
+        });
       }
-      lastError = error;
+      lastError = result.error;
     }
 
-    return NextResponse.json({ error: "Could not create room", details: String(lastError) }, { status: 500 });
+    return NextResponse.json({ error: "Could not create room", details: serializeStoreError(lastError) }, { status: 500 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
