@@ -1,5 +1,11 @@
-import { isWolfRole, type Alignment, type Role } from "@/types/game";
+import { isWolfRole, type Role } from "@/types/game";
 import { generateUUID } from "@/lib/utils";
+import {
+  getDefaultMultiplayerRoles,
+  getRoleAlignment,
+  normalizeRoleConfig,
+  validateRoleConfig,
+} from "./roles";
 import type {
   MultiplayerAction,
   MultiplayerChatMessage,
@@ -14,20 +20,6 @@ const MIN_PLAYERS_TO_START = 5;
 const MAX_ROOM_PLAYERS = 12;
 export const DISCUSSION_DURATION_MS = 60_000;
 export const VOTE_DURATION_MS = 15_000;
-
-function getMultiplayerRoleConfiguration(playerCount: number): Role[] {
-  const configs: Record<number, Role[]> = {
-    5: ["Werewolf", "Seer", "Witch", "Villager", "Villager"],
-    6: ["Werewolf", "Werewolf", "Seer", "Witch", "Villager", "Villager"],
-    7: ["Werewolf", "Werewolf", "Seer", "Witch", "Hunter", "Villager", "Villager"],
-    8: ["Werewolf", "Werewolf", "Seer", "Witch", "Hunter", "Villager", "Villager", "Villager"],
-    9: ["Werewolf", "Werewolf", "Werewolf", "Seer", "Witch", "Hunter", "Villager", "Villager", "Villager"],
-    10: ["Werewolf", "Werewolf", "WhiteWolfKing", "Seer", "Witch", "Hunter", "Guard", "Villager", "Villager", "Villager"],
-    11: ["Werewolf", "Werewolf", "WhiteWolfKing", "Seer", "Witch", "Hunter", "Guard", "Idiot", "Villager", "Villager", "Villager"],
-    12: ["Werewolf", "Werewolf", "Werewolf", "WhiteWolfKing", "Seer", "Witch", "Hunter", "Guard", "Idiot", "Villager", "Villager", "Villager"],
-  };
-  return (configs[playerCount] ?? configs[10]).slice();
-}
 
 export function normalizeRoomCode(code: string): string {
   return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
@@ -89,14 +81,26 @@ function addSystemMessages(state: MultiplayerGameState, messages: string[]): Mul
 
 function nightPhasePrompt(state: MultiplayerGameState): string {
   switch (state.phase) {
+    case "NIGHT_DOPPELGANGER_ACTION":
+      return "Doppelganger, choose one player to copy.";
+    case "NIGHT_CUPID_ACTION":
+      return "Cupid, choose two lovers.";
+    case "NIGHT_CULT_ACTION":
+      return "Cult Leader, choose one player to recruit.";
     case "NIGHT_GUARD_ACTION":
-      return "Guard, open your eyes.";
+      return "Bodyguard, open your eyes.";
     case "NIGHT_WOLF_ACTION":
       return "Werewolves, open your eyes and choose a target.";
+    case "NIGHT_BIG_BAD_WOLF_ACTION":
+      return "Big Bad Wolf, choose an adjacent bonus target.";
     case "NIGHT_WITCH_ACTION":
       return "Witch, open your eyes.";
     case "NIGHT_SEER_ACTION":
       return "Seer, open your eyes and inspect one player.";
+    case "NIGHT_SORCERER_ACTION":
+      return "Sorcerer, open your eyes and search for wolves or the Seer.";
+    case "NIGHT_PI_ACTION":
+      return "P.I., choose a center seat to inspect three neighbors.";
     default:
       return "";
   }
@@ -121,12 +125,21 @@ function clearPhaseTimer(state: MultiplayerGameState): MultiplayerGameState {
   return { ...state, phaseStartedAt: Date.now(), phaseDeadlineAt: undefined };
 }
 
-function getAlignment(role: Role): Alignment {
-  return isWolfRole(role) ? "wolf" : "village";
-}
-
-function checkWinner(players: MultiplayerPlayer[]): Alignment | null {
+function checkWinner(stateOrPlayers: MultiplayerGameState | MultiplayerPlayer[]): MultiplayerGameState["winner"] {
+  const state = Array.isArray(stateOrPlayers) ? null : stateOrPlayers;
+  const players = Array.isArray(stateOrPlayers) ? stateOrPlayers : stateOrPlayers.players;
   const alive = players.filter((p) => p.alive);
+  const tannerDeadByVote = state
+    ? Object.values(state.dayHistory).some((history) => {
+        if (typeof history.executedSeat !== "number") return false;
+        return players.find((player) => player.seat === history.executedSeat)?.role === "Tanner";
+      })
+    : false;
+  if (tannerDeadByVote) return "tanner";
+  if (state?.roleState?.cultMemberClientIds?.length) {
+    const cult = new Set(state.roleState.cultMemberClientIds);
+    if (alive.length > 0 && alive.every((player) => cult.has(player.clientId))) return "cult";
+  }
   const wolves = alive.filter((p) => isWolfRole(p.role)).length;
   const village = alive.length - wolves;
   if (wolves === 0) return "village";
@@ -134,40 +147,116 @@ function checkWinner(players: MultiplayerPlayer[]): Alignment | null {
   return null;
 }
 
+function winnerMessage(winner: MultiplayerGameState["winner"]): string {
+  if (winner === "wolf") return "Werewolves win.";
+  if (winner === "tanner") return "Tanner wins.";
+  if (winner === "cult") return "Cult wins.";
+  return "Village wins.";
+}
+
 function killSeats(state: MultiplayerGameState, seats: number[]): MultiplayerGameState {
   if (seats.length === 0) return state;
   const dead = new Set(seats);
+  const lovers = state.roleState?.lovers ?? [];
+  if (lovers.some((seat) => dead.has(seat))) {
+    for (const seat of lovers) dead.add(seat);
+  }
+  const killedPlayers = state.players.filter((player) => dead.has(player.seat));
+  const doppelgangerTargets = state.roleState?.doppelgangerTargets ?? {};
+  const inheritedByClientId = new Map<string, MultiplayerPlayer>();
+  for (const [clientId, targetSeat] of Object.entries(doppelgangerTargets)) {
+    const target = killedPlayers.find((player) => player.seat === targetSeat);
+    const doppelganger = state.players.find((player) => player.clientId === clientId);
+    if (target && doppelganger?.alive && doppelganger.role === "Doppelganger") {
+      inheritedByClientId.set(clientId, target);
+    }
+  }
+  const wolfCubKilled = killedPlayers.some((player) => player.role === "WolfCub");
   return {
     ...state,
-    players: state.players.map((p) => (dead.has(p.seat) ? { ...p, alive: false } : p)),
+    roleState: {
+      ...state.roleState,
+      wolfCubRevengePending: state.roleState?.wolfCubRevengePending || wolfCubKilled,
+    },
+    players: state.players.map((player) => {
+      if (dead.has(player.seat)) return { ...player, alive: false };
+      const inherited = inheritedByClientId.get(player.clientId);
+      if (inherited) {
+        return {
+          ...player,
+          role: inherited.role,
+          alignment: inherited.alignment,
+          roleRevealed: true,
+        };
+      }
+      return player;
+    }),
   };
+}
+
+function enterHunterShotIfNeeded(
+  state: MultiplayerGameState,
+  killedSeats: number[],
+  resumePhase: "DAY_DISCUSSION" | "DAY_RESOLVE"
+): MultiplayerGameState {
+  const hunter = killedSeats
+    .map((seat) => state.players.find((p) => p.seat === seat))
+    .find((player): player is MultiplayerPlayer => !!player && player.role === "Hunter");
+  if (!hunter) return state;
+  return clearPhaseTimer({
+    ...state,
+    phase: "HUNTER_SHOOT",
+    pendingHunterShot: {
+      hunterClientId: hunter.clientId,
+      hunterSeat: hunter.seat,
+      resumePhase,
+    },
+  });
+}
+
+function firstNightPhase(state: MultiplayerGameState): MultiplayerGameState["phase"] {
+  if (state.day === 0 && state.players.some((p) => p.alive && p.role === "Doppelganger")) return "NIGHT_DOPPELGANGER_ACTION";
+  if (state.day === 0 && state.players.some((p) => p.alive && p.role === "Cupid")) return "NIGHT_CUPID_ACTION";
+  if (state.players.some((p) => p.alive && p.role === "CultLeader")) return "NIGHT_CULT_ACTION";
+  if (state.players.some((p) => p.alive && p.role === "Guard")) return "NIGHT_GUARD_ACTION";
+  return "NIGHT_WOLF_ACTION";
 }
 
 function nextNight(state: MultiplayerGameState): MultiplayerGameState {
   const lastGuardTarget = state.nightActions.guardTarget ?? state.nightActions.lastGuardTarget;
+  const phase = firstNightPhase(state);
+  const revengeTonight = !!state.roleState?.wolfCubRevengePending;
   const next = clearPhaseTimer({
     ...state,
-    phase: "NIGHT_GUARD_ACTION",
+    phase,
     day: state.day + 1,
     votes: {},
+    roleState: {
+      ...state.roleState,
+      wolfCubRevengePending: false,
+      wolfCubRevengeNight: revengeTonight ? state.day + 1 : state.roleState?.wolfCubRevengeNight,
+    },
     nightActions: {
       lastGuardTarget,
       wolfVotes: {},
+      wolfTargets: [],
       seerChecks: state.nightActions.seerChecks,
+      sorcererChecks: state.nightActions.sorcererChecks ?? {},
+      piChecks: state.nightActions.piChecks ?? {},
     },
   });
   return addSystemMessages(next, [`Night ${next.day}. Close your eyes.`, nightPhasePrompt(next)]);
 }
 
-export function createInitialMultiplayerState(seats: MultiplayerSeat[]): MultiplayerGameState {
-  const roles = shuffle(getMultiplayerRoleConfiguration(seats.length));
+export function createInitialMultiplayerState(seats: MultiplayerSeat[], roleConfig?: Role[]): MultiplayerGameState {
+  const roles = shuffle(roleConfig?.length === seats.length ? roleConfig : getDefaultMultiplayerRoles(seats.length));
   const players = seats.map<MultiplayerPlayer>((seat, index) => {
     const role = roles[index] ?? "Villager";
     return {
       ...seat,
       alive: true,
       role,
-      alignment: getAlignment(role),
+      alignment: getRoleAlignment(role),
     };
   });
 
@@ -179,7 +268,14 @@ export function createInitialMultiplayerState(seats: MultiplayerSeat[]): Multipl
     roleAcks: {},
     nightActions: {
       wolfVotes: {},
+      wolfTargets: [],
       seerChecks: {},
+      sorcererChecks: {},
+      piChecks: {},
+    },
+    roleState: {
+      cultMemberClientIds: players.filter((player) => player.role === "CultLeader").map((player) => player.clientId),
+      doppelgangerTargets: {},
     },
     roleAbilities: {
       witchHealUsed: false,
@@ -195,21 +291,61 @@ export function createInitialMultiplayerState(seats: MultiplayerSeat[]): Multipl
 }
 
 function maybeSkipNightPhase(state: MultiplayerGameState): MultiplayerGameState {
+  if (state.phase === "NIGHT_DOPPELGANGER_ACTION") {
+    const doppelganger = state.players.find((p) => p.alive && p.role === "Doppelganger");
+    if (!doppelganger || state.roleState?.doppelgangerTargets?.[doppelganger.clientId] !== undefined) {
+      return maybeSkipNightPhase(enterNightPhase(state, state.players.some((p) => p.alive && p.role === "Cupid") ? "NIGHT_CUPID_ACTION" : "NIGHT_CULT_ACTION"));
+    }
+  }
+
+  if (state.phase === "NIGHT_CUPID_ACTION") {
+    const cupid = state.players.find((p) => p.alive && p.role === "Cupid");
+    if (!cupid || state.roleState?.lovers?.length === 2 || state.day > 1) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_CULT_ACTION"));
+  }
+
+  if (state.phase === "NIGHT_CULT_ACTION") {
+    const cultLeader = state.players.find((p) => p.alive && p.role === "CultLeader");
+    if (!cultLeader) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_GUARD_ACTION"));
+  }
+
   if (state.phase === "NIGHT_GUARD_ACTION") {
     const guard = state.players.find((p) => p.alive && p.role === "Guard");
-    if (!guard) return enterNightPhase(state, "NIGHT_WOLF_ACTION");
+    if (!guard) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WOLF_ACTION"));
+  }
+
+  if (state.phase === "NIGHT_WOLF_ACTION") {
+    if (state.roleState?.diseasedWolvesBlockedNight === state.day) {
+      return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WITCH_ACTION"));
+    }
+    const aliveWolves = state.players.filter((p) => p.alive && isWolfRole(p.role));
+    if (aliveWolves.length === 0) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WITCH_ACTION"));
+  }
+
+  if (state.phase === "NIGHT_BIG_BAD_WOLF_ACTION") {
+    const bigBadWolf = state.players.find((p) => p.alive && p.role === "BigBadWolf");
+    if (!bigBadWolf) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WITCH_ACTION"));
   }
 
   if (state.phase === "NIGHT_WITCH_ACTION") {
     const witch = state.players.find((p) => p.alive && p.role === "Witch");
     if (!witch || (state.roleAbilities.witchHealUsed && state.roleAbilities.witchPoisonUsed)) {
-      return enterNightPhase(state, "NIGHT_SEER_ACTION");
+      return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_SEER_ACTION"));
     }
   }
 
   if (state.phase === "NIGHT_SEER_ACTION") {
     const seer = state.players.find((p) => p.alive && p.role === "Seer");
-    if (!seer) return resolveNight(state);
+    if (!seer) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_SORCERER_ACTION"));
+  }
+
+  if (state.phase === "NIGHT_SORCERER_ACTION") {
+    const sorcerer = state.players.find((p) => p.alive && p.role === "Sorcerer");
+    if (!sorcerer) return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_PI_ACTION"));
+  }
+
+  if (state.phase === "NIGHT_PI_ACTION") {
+    const pi = state.players.find((p) => p.alive && p.role === "PI");
+    if (!pi) return resolveNight(state);
   }
 
   return state;
@@ -217,23 +353,52 @@ function maybeSkipNightPhase(state: MultiplayerGameState): MultiplayerGameState 
 
 function resolveNight(state: MultiplayerGameState): MultiplayerGameState {
   let deaths: number[] = [];
-  const wolfTarget = state.nightActions.wolfTarget;
+  const wolfTargets = state.nightActions.wolfTargets?.length
+    ? state.nightActions.wolfTargets
+    : typeof state.nightActions.wolfTarget === "number"
+      ? [state.nightActions.wolfTarget]
+      : [];
   const guarded = state.nightActions.guardTarget;
+  let nextState = state;
 
-  if (
-    typeof wolfTarget === "number" &&
-    wolfTarget !== guarded &&
-    !state.nightActions.witchSave
-  ) {
-    deaths.push(wolfTarget);
+  for (const wolfTarget of wolfTargets) {
+    const target = nextState.players.find((player) => player.seat === wolfTarget);
+    if (!target) continue;
+    if (target.role === "Cursed") {
+      nextState = {
+        ...nextState,
+        players: nextState.players.map((player) => (
+          player.seat === target.seat
+            ? { ...player, role: "Werewolf", alignment: "wolf", roleRevealed: player.roleRevealed }
+            : player
+        )),
+      };
+      continue;
+    }
+    if (target.role === "Diseased") {
+      nextState = {
+        ...nextState,
+        roleState: {
+          ...nextState.roleState,
+          diseasedWolvesBlockedNight: nextState.day + 1,
+        },
+      };
+    }
+    if (wolfTarget !== guarded && !nextState.nightActions.witchSave) {
+      deaths.push(wolfTarget);
+    }
   }
 
-  if (typeof state.nightActions.witchPoison === "number") {
-    deaths.push(state.nightActions.witchPoison);
+  if (typeof nextState.nightActions.bigBadWolfTarget === "number") {
+    deaths.push(nextState.nightActions.bigBadWolfTarget);
+  }
+
+  if (typeof nextState.nightActions.witchPoison === "number") {
+    deaths.push(nextState.nightActions.witchPoison);
   }
 
   deaths = [...new Set(deaths)];
-  let next = killSeats(state, deaths);
+  let next = killSeats(nextState, deaths);
   next = {
     ...next,
     phase: "DAY_DISCUSSION",
@@ -242,6 +407,7 @@ function resolveNight(state: MultiplayerGameState): MultiplayerGameState {
       [next.day]: {
         wolfTarget: next.nightActions.wolfTarget,
         guardTarget: next.nightActions.guardTarget,
+        wolfTargets,
         witchSave: next.nightActions.witchSave,
         witchPoison: next.nightActions.witchPoison,
         deaths,
@@ -250,16 +416,20 @@ function resolveNight(state: MultiplayerGameState): MultiplayerGameState {
   };
   next = withPhaseTimer(next, DISCUSSION_DURATION_MS);
 
-  const winner = checkWinner(next.players);
-  if (winner) {
-    return addSystemMessage(clearPhaseTimer({ ...next, phase: "GAME_END", winner }), winner === "wolf" ? "Werewolves win." : "Village wins.");
-  }
-
   const deathText =
     deaths.length === 0
       ? "Day breaks. Nobody died last night."
       : `Day breaks. ${deaths.map((seat) => `Seat ${seat + 1}`).join(", ")} died last night.`;
-  return addSystemMessage(next, deathText);
+  next = addSystemMessage(next, deathText);
+  const withHunterShot = enterHunterShotIfNeeded(next, deaths, "DAY_DISCUSSION");
+  if (withHunterShot.phase === "HUNTER_SHOOT") return withHunterShot;
+
+  const winner = checkWinner(next);
+  if (winner) {
+    return addSystemMessage(clearPhaseTimer({ ...next, phase: "GAME_END", winner }), winnerMessage(winner));
+  }
+
+  return next;
 }
 
 function resolveVotes(state: MultiplayerGameState): MultiplayerGameState {
@@ -282,6 +452,18 @@ function resolveVotes(state: MultiplayerGameState): MultiplayerGameState {
   }
 
   const executedSeat = top[0].seat;
+  const executedBeforeDeath = next.players.find((p) => p.seat === executedSeat);
+  if (executedBeforeDeath?.role === "Idiot" || executedBeforeDeath?.role === "Prince") {
+    next = {
+      ...next,
+      players: next.players.map((player) => (
+        player.seat === executedSeat ? { ...player, roleRevealed: true } : player
+      )),
+      dayHistory: { ...next.dayHistory, [next.day]: { executedSeat: null, tied: false } },
+    };
+    return addSystemMessage(next, `${executedBeforeDeath.displayName} was voted out but revealed as ${executedBeforeDeath.role} and survives.`);
+  }
+
   next = killSeats(next, [executedSeat]);
   next = {
     ...next,
@@ -289,15 +471,19 @@ function resolveVotes(state: MultiplayerGameState): MultiplayerGameState {
   };
 
   const executed = next.players.find((p) => p.seat === executedSeat);
-  const winner = checkWinner(next.players);
+  next = addSystemMessage(next, `${executed?.displayName ?? `Seat ${executedSeat + 1}`} was executed.`);
+  const withHunterShot = enterHunterShotIfNeeded(next, [executedSeat], "DAY_RESOLVE");
+  if (withHunterShot.phase === "HUNTER_SHOOT") return withHunterShot;
+
+  const winner = checkWinner(next);
   if (winner) {
     return addSystemMessage(
       clearPhaseTimer({ ...next, phase: "GAME_END", winner }),
-      `${executed?.displayName ?? `Seat ${executedSeat + 1}`} was executed. ${winner === "wolf" ? "Werewolves win." : "Village wins."}`
+      `${executed?.displayName ?? `Seat ${executedSeat + 1}`} was executed. ${winnerMessage(winner)}`
     );
   }
 
-  return addSystemMessage(next, `${executed?.displayName ?? `Seat ${executedSeat + 1}`} was executed.`);
+  return next;
 }
 
 function requireHost(room: MultiplayerRoom, clientId: string) {
@@ -321,6 +507,22 @@ function requireAliveTarget(state: MultiplayerGameState, targetSeat: number | nu
   const target = state.players.find((p) => p.seat === targetSeat && p.alive);
   if (!target) throw new Error("Invalid target.");
   return target;
+}
+
+function adjacentSeats(centerSeat: number, playerCount: number): number[] {
+  if (playerCount <= 1) return [];
+  return [
+    (centerSeat - 1 + playerCount) % playerCount,
+    (centerSeat + 1) % playerCount,
+  ];
+}
+
+function piSeats(centerSeat: number, playerCount: number): number[] {
+  return [...adjacentSeats(centerSeat, playerCount), centerSeat].sort((a, b) => a - b);
+}
+
+function roleLooksEvilToInvestigator(role: Role): boolean {
+  return isWolfRole(role) || role === "Sorcerer" || role === "Lycan";
 }
 
 function beginVote(state: MultiplayerGameState, message: string): MultiplayerGameState {
@@ -369,10 +571,29 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
     requireHost(room, action.clientId);
     if (room.status !== "lobby") throw new Error("Game already started.");
     if (room.seats.length < MIN_PLAYERS_TO_START) throw new Error(`Need at least ${MIN_PLAYERS_TO_START} players to start.`);
+    const configuredRoles = normalizeRoleConfig(room.roleConfig, room.seats.length, room.rolePreset);
+    const roles = configuredRoles.length === room.seats.length ? configuredRoles : getDefaultMultiplayerRoles(room.seats.length, room.rolePreset);
+    const configError = validateRoleConfig(roles);
+    if (configError) throw new Error(configError);
     return {
       ...room,
       status: "playing",
-      state: clearPhaseTimer(createInitialMultiplayerState(reindexSeats(room.seats))),
+      roleConfig: roles,
+      state: clearPhaseTimer(createInitialMultiplayerState(reindexSeats(room.seats), roles)),
+      actionSeq: room.actionSeq + 1,
+    };
+  }
+
+  if (action.type === "UPDATE_ROLE_CONFIG") {
+    requireHost(room, action.clientId);
+    if (room.status !== "lobby") throw new Error("Cannot change roles after the game starts.");
+    const roles = normalizeRoleConfig(action.roles, action.roles.length, action.preset ?? room.rolePreset);
+    const configError = validateRoleConfig(roles);
+    if (configError) throw new Error(configError);
+    return {
+      ...room,
+      roleConfig: roles,
+      rolePreset: action.preset ?? room.rolePreset ?? "classic",
       actionSeq: room.actionSeq + 1,
     };
   }
@@ -437,9 +658,69 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
     const player = requirePlayer(state, action.clientId);
     if (!player.alive) throw new Error("Dead players cannot act.");
 
+    if (state.phase === "NIGHT_DOPPELGANGER_ACTION") {
+      if (player.role !== "Doppelganger") throw new Error("Only the Doppelganger can act now.");
+      const target = requireAliveTarget(state, action.targetSeat);
+      if (target.clientId === player.clientId) throw new Error("Doppelganger cannot copy self.");
+      return {
+        ...room,
+        state: maybeSkipNightPhase({
+          ...state,
+          roleState: {
+            ...state.roleState,
+            doppelgangerTargets: {
+              ...state.roleState?.doppelgangerTargets,
+              [player.clientId]: target.seat,
+            },
+          },
+        }),
+        actionSeq: room.actionSeq + 1,
+      };
+    }
+
+    if (state.phase === "NIGHT_CUPID_ACTION") {
+      if (player.role !== "Cupid") throw new Error("Only Cupid can act now.");
+      const first = requireAliveTarget(state, action.targetSeat);
+      const second = requireAliveTarget(state, action.secondTargetSeat ?? null);
+      if (first.clientId === second.clientId) throw new Error("Cupid must choose two different players.");
+      return {
+        ...room,
+        state: maybeSkipNightPhase({
+          ...state,
+          roleState: {
+            ...state.roleState,
+            lovers: [first.seat, second.seat],
+          },
+        }),
+        actionSeq: room.actionSeq + 1,
+      };
+    }
+
+    if (state.phase === "NIGHT_CULT_ACTION") {
+      if (player.role !== "CultLeader") throw new Error("Only the Cult Leader can act now.");
+      const target = requireAliveTarget(state, action.targetSeat);
+      const cult = new Set(state.roleState?.cultMemberClientIds ?? [player.clientId]);
+      cult.add(player.clientId);
+      cult.add(target.clientId);
+      return {
+        ...room,
+        state: maybeSkipNightPhase(enterNightPhase({
+          ...state,
+          roleState: {
+            ...state.roleState,
+            cultMemberClientIds: [...cult],
+          },
+        }, "NIGHT_GUARD_ACTION")),
+        actionSeq: room.actionSeq + 1,
+      };
+    }
+
     if (state.phase === "NIGHT_GUARD_ACTION") {
       if (player.role !== "Guard") throw new Error("Only the Guard can act now.");
       const target = requireAliveTarget(state, action.targetSeat);
+      if (target.clientId === player.clientId) {
+        throw new Error("Guard must protect another player.");
+      }
       if (target.seat === state.nightActions.lastGuardTarget) {
         throw new Error("Invalid guard target.");
       }
@@ -455,6 +736,9 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
 
     if (state.phase === "NIGHT_WOLF_ACTION") {
       if (!isWolfRole(player.role)) throw new Error("Only wolves can act now.");
+      if (state.roleState?.diseasedWolvesBlockedNight === state.day) {
+        throw new Error("Wolves are diseased tonight and cannot kill.");
+      }
       const target = requireAliveTarget(state, action.targetSeat);
       if (isWolfRole(target.role)) throw new Error("Wolves cannot target wolves.");
       const wolfVotes = { ...state.nightActions.wolfVotes, [player.clientId]: target.seat };
@@ -470,12 +754,46 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
 
       const counts: Record<number, number> = {};
       for (const seat of Object.values(wolfVotes)) counts[seat] = (counts[seat] || 0) + 1;
-      const wolfTarget = Number(Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]);
+      const wolfKillCount = state.roleState?.wolfCubRevengeNight === state.day ? 2 : 1;
+      const wolfTargets = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, wolfKillCount)
+        .map(([seat]) => Number(seat));
+      const wolfTarget = wolfTargets[0];
+      const bigBadWolf = state.players.find((candidate) => candidate.alive && candidate.role === "BigBadWolf");
+      const canBigBadWolfAct =
+        !!bigBadWolf &&
+        typeof wolfTarget === "number" &&
+        adjacentSeats(bigBadWolf.seat, state.players.length).includes(wolfTarget);
       return {
         ...room,
         state: maybeSkipNightPhase(enterNightPhase({
           ...state,
-          nightActions: { ...state.nightActions, wolfVotes, wolfTarget },
+          nightActions: { ...state.nightActions, wolfVotes, wolfTarget, wolfTargets },
+        }, canBigBadWolfAct ? "NIGHT_BIG_BAD_WOLF_ACTION" : "NIGHT_WITCH_ACTION")),
+        actionSeq: room.actionSeq + 1,
+      };
+    }
+
+    if (state.phase === "NIGHT_BIG_BAD_WOLF_ACTION") {
+      if (player.role !== "BigBadWolf") throw new Error("Only the Big Bad Wolf can act now.");
+      if (action.targetSeat === null) {
+        return {
+          ...room,
+          state: maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WITCH_ACTION")),
+          actionSeq: room.actionSeq + 1,
+        };
+      }
+      const target = requireAliveTarget(state, action.targetSeat);
+      if (!adjacentSeats(player.seat, state.players.length).includes(target.seat)) {
+        throw new Error("Big Bad Wolf must choose an adjacent target.");
+      }
+      if (target.clientId === player.clientId || isWolfRole(target.role)) throw new Error("Invalid Big Bad Wolf target.");
+      return {
+        ...room,
+        state: maybeSkipNightPhase(enterNightPhase({
+          ...state,
+          nightActions: { ...state.nightActions, bigBadWolfTarget: target.seat },
         }, "NIGHT_WITCH_ACTION")),
         actionSeq: room.actionSeq + 1,
       };
@@ -486,15 +804,21 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
       const nextAbilities = { ...state.roleAbilities };
       const nextNightActions = { ...state.nightActions };
 
-      if (action.witchAction === "save" && !nextAbilities.witchHealUsed) {
+      if (action.witchAction === "save") {
+        if (nextAbilities.witchHealUsed) throw new Error("The healing potion has already been used.");
+        if (typeof state.nightActions.wolfTarget !== "number") throw new Error("There is no wolf target to save.");
         nextAbilities.witchHealUsed = true;
         nextNightActions.witchSave = true;
-      } else if (action.witchAction === "poison" && !nextAbilities.witchPoisonUsed && typeof action.targetSeat === "number") {
+      } else if (action.witchAction === "poison") {
+        if (nextAbilities.witchPoisonUsed) throw new Error("The poison potion has already been used.");
+        if (typeof action.targetSeat !== "number") throw new Error("Choose a target to poison.");
         const target = requireAliveTarget(state, action.targetSeat);
         nextAbilities.witchPoisonUsed = true;
         nextNightActions.witchPoison = target.seat;
-      } else {
+      } else if (action.witchAction === "pass") {
         nextNightActions.witchSave = false;
+      } else {
+        throw new Error("Choose save, poison, or pass.");
       }
 
       return {
@@ -516,19 +840,117 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
         ...state.nightActions.seerChecks,
         [player.clientId]: [
           ...(state.nightActions.seerChecks[player.clientId] || []),
-          { targetSeat: target.seat, isWolf: isWolfRole(target.role), day: state.day },
+          { targetSeat: target.seat, isWolf: roleLooksEvilToInvestigator(target.role), targetRole: target.role, day: state.day },
         ],
       };
 
       return {
         ...room,
-        state: resolveNight({
+        state: maybeSkipNightPhase(enterNightPhase({
           ...state,
           nightActions: { ...state.nightActions, seerChecks },
+        }, "NIGHT_SORCERER_ACTION")),
+        actionSeq: room.actionSeq + 1,
+      };
+    }
+
+    if (state.phase === "NIGHT_SORCERER_ACTION") {
+      if (player.role !== "Sorcerer") throw new Error("Only the Sorcerer can act now.");
+      const target = requireAliveTarget(state, action.targetSeat);
+      if (target.clientId === player.clientId) throw new Error("Sorcerer cannot inspect self.");
+      const result: "wolf" | "seer" | "other" = isWolfRole(target.role) ? "wolf" : target.role === "Seer" ? "seer" : "other";
+      const sorcererChecks = {
+        ...(state.nightActions.sorcererChecks ?? {}),
+        [player.clientId]: [
+          ...(state.nightActions.sorcererChecks?.[player.clientId] || []),
+          { targetSeat: target.seat, result, day: state.day },
+        ],
+      };
+      return {
+        ...room,
+        state: maybeSkipNightPhase(enterNightPhase({
+          ...state,
+          nightActions: { ...state.nightActions, sorcererChecks },
+        }, "NIGHT_PI_ACTION")),
+        actionSeq: room.actionSeq + 1,
+      };
+    }
+
+    if (state.phase === "NIGHT_PI_ACTION") {
+      if (player.role !== "PI") throw new Error("Only the P.I. can act now.");
+      const target = requireAliveTarget(state, action.targetSeat);
+      const seats = piSeats(target.seat, state.players.length);
+      const hasEvil = seats.some((seat) => {
+        const checked = state.players.find((candidate) => candidate.seat === seat);
+        return checked ? roleLooksEvilToInvestigator(checked.role) : false;
+      });
+      const piChecks = {
+        ...(state.nightActions.piChecks ?? {}),
+        [player.clientId]: [
+          ...(state.nightActions.piChecks?.[player.clientId] || []),
+          { centerSeat: target.seat, seats, hasEvil, day: state.day },
+        ],
+      };
+      return {
+        ...room,
+        state: resolveNight({
+          ...state,
+          nightActions: { ...state.nightActions, piChecks },
         }),
         actionSeq: room.actionSeq + 1,
       };
     }
+  }
+
+  if (action.type === "HUNTER_SHOOT") {
+    const player = requirePlayer(state, action.clientId);
+    if (state.phase !== "HUNTER_SHOOT" || !state.pendingHunterShot) {
+      throw new Error("Hunter cannot shoot now.");
+    }
+    if (state.pendingHunterShot.hunterClientId !== player.clientId || player.role !== "Hunter") {
+      throw new Error("Only the dead Hunter can shoot now.");
+    }
+    const target = requireAliveTarget(state, action.targetSeat);
+    if (target.clientId === player.clientId) throw new Error("Hunter cannot shoot self.");
+
+    let next = killSeats(state, [target.seat]);
+    next = {
+      ...next,
+      phase: state.pendingHunterShot.resumePhase,
+      pendingHunterShot: undefined,
+      nightHistory: state.pendingHunterShot.resumePhase === "DAY_DISCUSSION"
+        ? {
+            ...next.nightHistory,
+            [next.day]: {
+              ...next.nightHistory[next.day],
+              hunterShot: { hunterSeat: player.seat, targetSeat: target.seat },
+            },
+          }
+        : next.nightHistory,
+      dayHistory: state.pendingHunterShot.resumePhase === "DAY_RESOLVE"
+        ? {
+            ...next.dayHistory,
+            [next.day]: {
+              ...next.dayHistory[next.day],
+              hunterShot: { hunterSeat: player.seat, targetSeat: target.seat },
+            },
+          }
+        : next.dayHistory,
+    };
+    next = state.pendingHunterShot.resumePhase === "DAY_DISCUSSION"
+      ? withPhaseTimer(next, DISCUSSION_DURATION_MS)
+      : clearPhaseTimer(next);
+    next = addSystemMessage(next, `Hunter ${player.displayName} shot ${target.displayName}.`);
+
+    const winner = checkWinner(next);
+    return {
+      ...room,
+      status: winner ? "ended" : room.status,
+      state: winner
+        ? addSystemMessage(clearPhaseTimer({ ...next, phase: "GAME_END", winner }), winnerMessage(winner))
+        : next,
+      actionSeq: room.actionSeq + 1,
+    };
   }
 
   if (action.type === "START_VOTE") {

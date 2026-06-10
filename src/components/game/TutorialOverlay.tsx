@@ -34,7 +34,7 @@ interface TutorialOverlayProps {
   onAutoPromptChange?: (enabled: boolean) => void;
 }
 
-const ROLE_META: Record<Role, { accent: string; bg: string; Icon: React.ComponentType<{ size?: number; className?: string }> }> = {
+const ROLE_META: Partial<Record<Role, { accent: string; bg: string; Icon: React.ComponentType<{ size?: number; className?: string }> }>> = {
   Werewolf: { accent: "var(--color-wolf)", bg: "var(--color-wolf-bg)", Icon: WerewolfIcon },
   WhiteWolfKing: { accent: "var(--color-wolf)", bg: "var(--color-wolf-bg)", Icon: WhiteWolfKingIcon },
   Seer: { accent: "var(--color-seer)", bg: "var(--color-seer-bg)", Icon: SeerIcon },
@@ -106,7 +106,7 @@ export function TutorialOverlay({
 
     // Role tutorial
     const roleKey = renderTutorial.role ?? "Villager";
-    const roleLabelMap: Record<Role, string> = {
+    const roleLabelMap: Partial<Record<Role, string>> = {
       Werewolf: t("roles.werewolf"),
       Seer: t("roles.seer"),
       Witch: t("roles.witch"),
@@ -122,11 +122,11 @@ export function TutorialOverlay({
       action: string;
       tips: string[];
     }>;
-    const roleData = roleDataMap[roleKey];
-    const roleMeta = ROLE_META[roleKey];
+    const roleData = roleDataMap[roleKey] ?? roleDataMap.Villager;
+    const roleMeta = ROLE_META[roleKey] ?? ROLE_META.Villager!;
     return {
       icon: roleMeta.Icon,
-      title: t("tutorialOverlay.roleTitle", { role: roleLabelMap[roleKey] }),
+      title: t("tutorialOverlay.roleTitle", { role: roleLabelMap[roleKey] ?? roleKey }),
       body: (
         <div className="space-y-4">
           <p className="text-white/90">{roleData.desc}</p>

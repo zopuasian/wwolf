@@ -1,8 +1,51 @@
-export type Role = "Villager" | "Werewolf" | "Seer" | "Witch" | "Hunter" | "Guard" | "Idiot" | "WhiteWolfKing";
+export type Role =
+  | "Villager"
+  | "Werewolf"
+  | "BigBadWolf"
+  | "WolfCub"
+  | "Sorcerer"
+  | "Seer"
+  | "Witch"
+  | "Hunter"
+  | "Guard"
+  | "Diseased"
+  | "Prince"
+  | "Cupid"
+  | "PI"
+  | "Lycan"
+  | "Cursed"
+  | "Doppelganger"
+  | "Tanner"
+  | "CultLeader"
+  | "Idiot"
+  | "WhiteWolfKing";
+
+export const ALL_ROLES: Role[] = [
+  "Villager",
+  "Werewolf",
+  "BigBadWolf",
+  "WolfCub",
+  "Sorcerer",
+  "Seer",
+  "Witch",
+  "Hunter",
+  "Guard",
+  "Diseased",
+  "Prince",
+  "Cupid",
+  "PI",
+  "Lycan",
+  "Cursed",
+  "Doppelganger",
+  "Tanner",
+  "CultLeader",
+  "Idiot",
+  "WhiteWolfKing",
+];
 
 /** Check if a role belongs to the wolf team (used for seer checks, wolf actions, etc.) */
 export function isWolfRole(role: string | undefined): boolean {
-  return role === "Werewolf" || role === "WhiteWolfKing";
+  return role === "Werewolf" || role === "WhiteWolfKing" || role === "BigBadWolf" || role === "WolfCub";
 }
 
 export type DifficultyLevel = "easy" | "normal" | "hard";

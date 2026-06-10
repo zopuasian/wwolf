@@ -82,7 +82,7 @@ export function GameSetupModal({
     { value: 12, label: t("gameSetup.playerCount.12.title"), description: t("gameSetup.playerCount.12.description"), roles: t("gameSetup.playerCount.12.roles") },
   ];
 
-  const roleLabels = useMemo<Record<Role, string>>(
+  const roleLabels = useMemo<Partial<Record<Role, string>>>(
     () => ({
       Villager: t("roles.villager"),
       Werewolf: t("roles.werewolf"),
@@ -96,7 +96,7 @@ export function GameSetupModal({
     [t]
   );
 
-  const roleDescriptions = useMemo<Record<Role, string>>(
+  const roleDescriptions = useMemo<Partial<Record<Role, string>>>(
     () => ({
       Villager: t("gameSetup.rolePreference.desc.villager"),
       Werewolf: t("gameSetup.rolePreference.desc.werewolf"),

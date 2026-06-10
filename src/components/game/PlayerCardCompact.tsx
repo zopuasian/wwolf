@@ -111,7 +111,7 @@ export function PlayerCardCompact({
     }
   })();
 
-  const roleLabels = useMemo<Record<Role, string>>(() => ({
+  const roleLabels = useMemo<Partial<Record<Role, string>>>(() => ({
     Werewolf: t("roles.werewolf"),
     Seer: t("roles.seer"),
     Witch: t("roles.witch"),

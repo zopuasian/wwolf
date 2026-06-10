@@ -117,6 +117,27 @@ export async function updateStoredRoomIfSeq(
   return { ok: false, error, storage: "supabase" };
 }
 
+export async function deleteStoredRoom(code: string): Promise<StoreResult<boolean>> {
+  if ((process.env.MULTIPLAYER_ROOM_STORAGE || "auto") === "memory" || memoryRooms.has(code)) {
+    return { ok: true, value: memoryRooms.delete(code), storage: "memory" };
+  }
+
+  const { error } = await supabaseAdmin
+    .from("multiplayer_rooms")
+    .delete()
+    .eq("code", code);
+
+  if (!error) {
+    return { ok: true, value: true, storage: "supabase" };
+  }
+
+  if (shouldUseMemoryFallback(error)) {
+    return { ok: true, value: memoryRooms.delete(code), storage: "memory" };
+  }
+
+  return { ok: false, error, storage: "supabase" };
+}
+
 export function serializeStoreError(error: unknown) {
   if (!error || typeof error !== "object") return String(error);
   return {

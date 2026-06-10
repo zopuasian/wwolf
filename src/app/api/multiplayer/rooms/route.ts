@@ -3,6 +3,7 @@ import { clampPlayerCount, createRoomCode, createSeat } from "@/lib/multiplayer/
 import { sanitizeRoomForClient } from "@/lib/multiplayer/api";
 import { createStoredRoom, serializeStoreError } from "@/lib/multiplayer/room-store";
 import type { MultiplayerRoom } from "@/lib/multiplayer/types";
+import { getDefaultMultiplayerRoles, normalizeRoleConfig, type MultiplayerRolePreset } from "@/lib/multiplayer/roles";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,8 @@ export async function POST(req: Request) {
     const clientId = String(body.clientId || "").trim();
     const displayName = String(body.displayName || "").trim();
     const playerCount = clampPlayerCount(Number(body.playerCount ?? 10));
+    const rolePreset = (typeof body.rolePreset === "string" ? body.rolePreset : "classic") as MultiplayerRolePreset;
+    const roleConfig = normalizeRoleConfig(body.roleConfig, playerCount, rolePreset);
 
     if (!clientId) {
       return NextResponse.json({ error: "Missing clientId" }, { status: 400 });
@@ -28,6 +31,8 @@ export async function POST(req: Request) {
         status: "lobby",
         seats: [seat],
         state: null,
+        roleConfig: roleConfig.length ? roleConfig : getDefaultMultiplayerRoles(playerCount, rolePreset),
+        rolePreset,
         actionSeq: 0,
       };
       const result = await createStoredRoom(room);

@@ -406,7 +406,7 @@ export function WelcomeScreen({
     process.env.NODE_ENV !== "production" && (process.env.NEXT_PUBLIC_SHOW_DEVTOOLS ?? "true") === "true";
 
   const roleOptions: Role[] = ["Villager", "Werewolf", "WhiteWolfKing", "Seer", "Witch", "Hunter", "Guard", "Idiot"];
-  const roleLabels = useMemo<Record<Role, string>>(
+  const roleLabels = useMemo<Partial<Record<Role, string>>>(
     () => ({
       Villager: t("roles.villager"),
       Werewolf: t("roles.werewolf"),
@@ -445,7 +445,7 @@ export function WelcomeScreen({
     if (fixedRoles.length !== playerCount) return false;
     if (fixedRoles.some((r) => !r)) return false;
 
-    const counts: Record<Role, number> = {
+    const counts: Record<string, number> = {
       Villager: 0,
       Werewolf: 0,
       Seer: 0,
@@ -456,7 +456,7 @@ export function WelcomeScreen({
       WhiteWolfKing: 0,
     };
     for (const r of fixedRoles) {
-      counts[r as Role] += 1;
+      counts[r as Role] = (counts[r as Role] ?? 0) + 1;
     }
 
     const expected = getRoleCountConfig(playerCount);

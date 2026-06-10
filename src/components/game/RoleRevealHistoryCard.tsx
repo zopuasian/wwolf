@@ -39,7 +39,7 @@ const getPlayerAvatarUrl = (player: Player, isGenshinMode: boolean) =>
     ? getModelLogoUrl(player.agentProfile?.modelRef)
     : buildSimpleAvatarUrl(player.avatarSeed ?? player.playerId, { gender: player.agentProfile?.persona?.gender });
 
-const ROLE_META: Record<Role, { Icon: ComponentType<{ size?: number; className?: string }>; color: string; bg: string }> = {
+const ROLE_META: Partial<Record<Role, { Icon: ComponentType<{ size?: number; className?: string }>; color: string; bg: string }>> = {
   Werewolf: { Icon: WerewolfIcon, color: "var(--color-wolf)", bg: "var(--color-wolf-bg)" },
   WhiteWolfKing: { Icon: WhiteWolfKingIcon, color: "var(--color-wolf)", bg: "var(--color-wolf-bg)" },
   Seer: { Icon: SeerIcon, color: "var(--color-seer)", bg: "var(--color-seer-bg)" },
@@ -58,7 +58,7 @@ export function RoleRevealHistoryCard({
   isGenshinMode = false,
 }: RoleRevealHistoryCardProps) {
   const t = useTranslations();
-  const roleLabels: Record<Role, string> = {
+  const roleLabels: Partial<Record<Role, string>> = {
     Werewolf: t("roles.werewolf"),
     WhiteWolfKing: t("roles.whiteWolfKing"),
     Seer: t("roles.seer"),
@@ -85,7 +85,7 @@ export function RoleRevealHistoryCard({
           const displayName = matchedPlayer?.displayName ?? entry.name ?? t("common.unknown");
           const role = matchedPlayer?.role ?? entry.role ?? "Villager";
           const modelRef = matchedPlayer?.agentProfile?.modelRef ?? entry.modelRef;
-          const { Icon, color, bg } = ROLE_META[role];
+          const { Icon, color, bg } = ROLE_META[role] ?? ROLE_META.Villager!;
 
           return (
             <motion.div
@@ -121,7 +121,7 @@ export function RoleRevealHistoryCard({
                         style={{ color, background: bg }}
                       >
                         <Icon size={14} />
-                        {roleLabels[role]}
+                        {roleLabels[role] ?? role}
                       </span>
                     </div>
                   </div>

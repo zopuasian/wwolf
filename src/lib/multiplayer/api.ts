@@ -1,6 +1,7 @@
 import type { Json } from "@/types/database";
 import type { MultiplayerRoom, MultiplayerSeat } from "./types";
 import { isWolfRole } from "@/types/game";
+import { getDefaultMultiplayerRoles, normalizeRoleConfig, type MultiplayerRolePreset } from "./roles";
 
 export type DbRoom = {
   code: string;
@@ -14,19 +15,22 @@ export type DbRoom = {
 };
 
 export function dbRoomToRoom(row: DbRoom): MultiplayerRoom {
+  const stateObject =
+    row.state &&
+    typeof row.state === "object" &&
+    !Array.isArray(row.state)
+      ? (row.state as Record<string, unknown>)
+      : null;
+  const rolePreset = typeof stateObject?.rolePreset === "string" ? stateObject.rolePreset as MultiplayerRolePreset : "classic";
   return {
     code: row.code,
     hostClientId: row.host_client_id,
     playerCount: row.player_count,
     status: row.status,
     seats: Array.isArray(row.seats) ? (row.seats as unknown as MultiplayerSeat[]) : [],
-    state:
-      row.state &&
-      typeof row.state === "object" &&
-      !Array.isArray(row.state) &&
-      "phase" in row.state
-        ? (row.state as unknown as MultiplayerRoom["state"])
-        : null,
+    state: stateObject && "phase" in stateObject ? (row.state as unknown as MultiplayerRoom["state"]) : null,
+    roleConfig: normalizeRoleConfig(stateObject?.roleConfig, row.player_count, rolePreset),
+    rolePreset,
     actionSeq: row.action_seq,
     updatedAt: row.updated_at,
   };
@@ -38,7 +42,10 @@ export function roomToDbPatch(room: MultiplayerRoom) {
     player_count: room.playerCount,
     status: room.status,
     seats: room.seats as unknown as Json,
-    state: (room.state ?? {}) as unknown as Json,
+    state: (room.state ?? {
+      roleConfig: room.roleConfig ?? getDefaultMultiplayerRoles(room.playerCount, room.rolePreset),
+      rolePreset: room.rolePreset ?? "classic",
+    }) as unknown as Json,
     action_seq: room.actionSeq,
   };
 }
@@ -61,10 +68,18 @@ export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): 
         lastGuardTarget: viewer?.role === "Guard" ? room.state.nightActions.lastGuardTarget : undefined,
         wolfVotes: {},
         wolfTarget: canSeeNightTarget ? room.state.nightActions.wolfTarget : undefined,
+        wolfTargets: room.state.phase === "GAME_END" ? room.state.nightActions.wolfTargets : undefined,
+        bigBadWolfTarget: room.state.phase === "GAME_END" ? room.state.nightActions.bigBadWolfTarget : undefined,
         witchSave: room.state.phase === "GAME_END" ? room.state.nightActions.witchSave : undefined,
         witchPoison: room.state.phase === "GAME_END" ? room.state.nightActions.witchPoison : undefined,
         seerChecks: viewer?.role === "Seer"
           ? { [clientId]: room.state.nightActions.seerChecks[clientId] ?? [] }
+          : {},
+        sorcererChecks: viewer?.role === "Sorcerer"
+          ? { [clientId]: room.state.nightActions.sorcererChecks?.[clientId] ?? [] }
+          : {},
+        piChecks: viewer?.role === "PI"
+          ? { [clientId]: room.state.nightActions.piChecks?.[clientId] ?? [] }
           : {},
       },
       players: room.state.players.map((player) => {

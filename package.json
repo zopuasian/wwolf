@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:multiplayer": "node scripts/multiplayer-smoke-test.mjs",
+    "test:multiplayer:ui": "node scripts/open-visible-multiplayer-test.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

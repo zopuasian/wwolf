@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Role } from "@/types/game";
+import { ALL_ROLES, type Role } from "@/types/game";
 
 const STORAGE_KEY = "wolfcha.tutorial.state";
 
@@ -12,16 +12,9 @@ type TutorialState = {
   seenRoles: Record<Role, boolean>;
 };
 
-const createDefaultRolesState = (): Record<Role, boolean> => ({
-  Werewolf: false,
-  Seer: false,
-  Witch: false,
-  Hunter: false,
-  Guard: false,
-  Idiot: false,
-  WhiteWolfKing: false,
-  Villager: false,
-});
+const createDefaultRolesState = (): Record<Role, boolean> => (
+  Object.fromEntries(ALL_ROLES.map((role) => [role, false])) as Record<Role, boolean>
+);
 
 const defaultState: TutorialState = {
   enabled: true,

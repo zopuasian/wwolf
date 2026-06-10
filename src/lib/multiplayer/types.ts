@@ -1,15 +1,23 @@
 import type { Alignment, Phase, Role } from "@/types/game";
+import type { MultiplayerRolePreset } from "./roles";
 
 export type MultiplayerRoomStatus = "lobby" | "playing" | "ended";
 
 export type MultiplayerPhase =
   | "LOBBY"
   | "ROLE_REVEAL"
+  | "NIGHT_DOPPELGANGER_ACTION"
+  | "NIGHT_CUPID_ACTION"
+  | "NIGHT_CULT_ACTION"
   | "NIGHT_GUARD_ACTION"
   | "NIGHT_WOLF_ACTION"
+  | "NIGHT_BIG_BAD_WOLF_ACTION"
   | "NIGHT_WITCH_ACTION"
   | "NIGHT_SEER_ACTION"
+  | "NIGHT_SORCERER_ACTION"
+  | "NIGHT_PI_ACTION"
   | "NIGHT_RESOLVE"
+  | "HUNTER_SHOOT"
   | "DAY_DISCUSSION"
   | "DAY_VOTE"
   | "DAY_RESOLVE"
@@ -56,18 +64,35 @@ export interface MultiplayerGameState {
     lastGuardTarget?: number;
     wolfVotes: Record<string, number>;
     wolfTarget?: number;
+    wolfTargets?: number[];
+    bigBadWolfTarget?: number;
     witchSave?: boolean;
     witchPoison?: number;
-    seerChecks: Record<string, { targetSeat: number; isWolf: boolean; day: number }[]>;
+    seerChecks: Record<string, { targetSeat: number; isWolf: boolean; targetRole: Role; day: number }[]>;
+    sorcererChecks?: Record<string, { targetSeat: number; result: "wolf" | "seer" | "other"; day: number }[]>;
+    piChecks?: Record<string, { centerSeat: number; seats: number[]; hasEvil: boolean; day: number }[]>;
   };
   roleAbilities: {
     witchHealUsed: boolean;
     witchPoisonUsed: boolean;
   };
+  pendingHunterShot?: {
+    hunterClientId: string;
+    hunterSeat: number;
+    resumePhase: "DAY_DISCUSSION" | "DAY_RESOLVE";
+  };
+  roleState?: {
+    lovers?: number[];
+    cultMemberClientIds?: string[];
+    doppelgangerTargets?: Record<string, number>;
+    wolfCubRevengePending?: boolean;
+    wolfCubRevengeNight?: number;
+    diseasedWolvesBlockedNight?: number;
+  };
   votes: Record<string, number>;
-  dayHistory: Record<number, { executedSeat?: number | null; tied?: boolean }>;
-  nightHistory: Record<number, { wolfTarget?: number; guardTarget?: number; witchSave?: boolean; witchPoison?: number; deaths: number[] }>;
-  winner: Alignment | null;
+  dayHistory: Record<number, { executedSeat?: number | null; tied?: boolean; hunterShot?: { hunterSeat: number; targetSeat: number } }>;
+  nightHistory: Record<number, { wolfTarget?: number; wolfTargets?: number[]; guardTarget?: number; witchSave?: boolean; witchPoison?: number; deaths: number[]; hunterShot?: { hunterSeat: number; targetSeat: number } }>;
+  winner: Alignment | "tanner" | "cult" | null;
 }
 
 export interface MultiplayerRoom {
@@ -77,6 +102,8 @@ export interface MultiplayerRoom {
   status: MultiplayerRoomStatus;
   seats: MultiplayerSeat[];
   state: MultiplayerGameState | null;
+  roleConfig?: Role[];
+  rolePreset?: MultiplayerRolePreset;
   actionSeq: number;
   updatedAt?: string;
 }
@@ -86,7 +113,9 @@ export type MultiplayerAction =
   | { type: "LEAVE_ROOM"; clientId: string }
   | { type: "ACK_ROLE"; clientId: string }
   | { type: "CHAT"; clientId: string; content: string }
-  | { type: "NIGHT_ACTION"; clientId: string; targetSeat: number | null; witchAction?: "save" | "poison" | "pass" }
+  | { type: "UPDATE_ROLE_CONFIG"; clientId: string; roles: Role[]; preset?: MultiplayerRolePreset }
+  | { type: "NIGHT_ACTION"; clientId: string; targetSeat: number | null; secondTargetSeat?: number | null; witchAction?: "save" | "poison" | "pass" }
+  | { type: "HUNTER_SHOOT"; clientId: string; targetSeat: number | null }
   | { type: "START_VOTE"; clientId: string }
   | { type: "END_VOTE"; clientId: string }
   | { type: "VOTE"; clientId: string; targetSeat: number }
@@ -98,16 +127,30 @@ export function toGamePhase(phase: MultiplayerPhase): Phase {
       return "LOBBY";
     case "ROLE_REVEAL":
       return "NIGHT_START";
+    case "NIGHT_DOPPELGANGER_ACTION":
+      return "NIGHT_START";
+    case "NIGHT_CUPID_ACTION":
+      return "NIGHT_START";
+    case "NIGHT_CULT_ACTION":
+      return "NIGHT_START";
     case "NIGHT_GUARD_ACTION":
       return "NIGHT_GUARD_ACTION";
     case "NIGHT_WOLF_ACTION":
+      return "NIGHT_WOLF_ACTION";
+    case "NIGHT_BIG_BAD_WOLF_ACTION":
       return "NIGHT_WOLF_ACTION";
     case "NIGHT_WITCH_ACTION":
       return "NIGHT_WITCH_ACTION";
     case "NIGHT_SEER_ACTION":
       return "NIGHT_SEER_ACTION";
+    case "NIGHT_SORCERER_ACTION":
+      return "NIGHT_SEER_ACTION";
+    case "NIGHT_PI_ACTION":
+      return "NIGHT_SEER_ACTION";
     case "NIGHT_RESOLVE":
       return "NIGHT_RESOLVE";
+    case "HUNTER_SHOOT":
+      return "HUNTER_SHOOT";
     case "DAY_DISCUSSION":
       return "DAY_SPEECH";
     case "DAY_VOTE":
