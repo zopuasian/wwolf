@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, Copy, Crosshair, Drop, Eye, PaperPlaneRight, Shield, SignOut, Skull, Timer, UsersThree } from "@phosphor-icons/react";
+import { CheckCircle, Copy, Crosshair, Drop, Eye, FingerprintSimple, PaperPlaneRight, Shield, SignOut, Skull, Timer, UsersThree } from "@phosphor-icons/react";
 import { DayIcon, NightIcon, VoteIcon, WerewolfIcon } from "@/components/icons/FlatIcons";
 import { GameBackground } from "@/components/game/GameBackground";
 import { PlayerCardCompact } from "@/components/game/PlayerCardCompact";
@@ -28,6 +28,11 @@ const roleLabel = MULTIPLAYER_ROLE_LABEL;
 const MIN_PLAYERS_TO_START = 5;
 const PLAYER_COUNT_OPTIONS = [5, 6, 7, 8, 9, 10, 11, 12];
 const VISIBLE_TEST_STEP_DELAY_MS = 2600;
+
+type PlayerActionChip = {
+  label: string;
+  tone?: "vote" | "wolf" | "curse";
+};
 
 function isNightPhase(phase: string) {
   return phase.startsWith("NIGHT") || phase === "ROLE_REVEAL";
@@ -364,6 +369,11 @@ export function OnlineMultiplayerApp() {
     return () => window.clearTimeout(timer);
   }, [visualIsNight]);
 
+  useEffect(() => {
+    setSelectedSeat(null);
+    setSelectedSeats([]);
+  }, [phase]);
+
   const fetchRoom = useCallback(async (code: string, id = clientId) => {
     if (!id) return;
     const res = await fetch(`/api/multiplayer/rooms/${encodeURIComponent(code)}?clientId=${encodeURIComponent(id)}`);
@@ -641,6 +651,116 @@ export function OnlineMultiplayerApp() {
     return !!livePlayer && canSelectSeat(livePlayer);
   };
 
+  const playerActionChips = useMemo<Record<number, PlayerActionChip>>(() => {
+    if (!state) return {};
+    const chipBySeat: Record<number, PlayerActionChip> = {};
+    const getTargetName = (seat: number) => {
+      const target = state.players.find((player) => player.seat === seat);
+      return target ? target.displayName : `Seat ${seat + 1}`;
+    };
+
+    if (phase === "DAY_VOTE") {
+      for (const voter of state.players) {
+        const targetSeat = state.votes[voter.clientId];
+        if (typeof targetSeat === "number") {
+          chipBySeat[voter.seat] = { label: `Vote: ${getTargetName(targetSeat)}`, tone: "vote" };
+        }
+      }
+      return chipBySeat;
+    }
+
+    if ((phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION") && me && isWolfRole(me.role)) {
+      const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
+      const wolfVotes = isRecruitNight ? state.nightActions.bigBadWolfRecruitVotes ?? {} : state.nightActions.wolfVotes;
+      for (const voter of state.players) {
+        const targetSeat = wolfVotes[voter.clientId];
+        if (typeof targetSeat === "number") {
+          chipBySeat[voter.seat] = {
+            label: `${isRecruitNight ? "Curse" : "Bite"}: ${getTargetName(targetSeat)}`,
+            tone: isRecruitNight ? "curse" : "wolf",
+          };
+        }
+      }
+    }
+
+    return chipBySeat;
+  }, [me, phase, state]);
+
+  const isRecruitWolfNight = phase === "NIGHT_WOLF_ACTION" && state?.roleState?.bigBadWolfRecruitNight === state.day;
+  const myDayVoteSeat = state?.votes[clientId];
+  const myWolfActionSeat = me && isWolfRole(me.role)
+    ? isRecruitWolfNight
+      ? state?.nightActions.bigBadWolfRecruitVotes?.[clientId]
+      : state?.nightActions.wolfVotes?.[clientId]
+    : undefined;
+  const mySubmittedTargetSeat = phase === "DAY_VOTE"
+    ? myDayVoteSeat
+    : phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION"
+      ? myWolfActionSeat
+      : undefined;
+  const getPlayerNameBySeat = (seat: number | undefined) => {
+    if (typeof seat !== "number") return "";
+    const player = state?.players.find((candidate) => candidate.seat === seat);
+    return player ? player.displayName : `Seat ${seat + 1}`;
+  };
+  const actionTargets = state?.players.filter((player) => player.alive && canSelectSeat(player)) ?? [];
+  const canUseActionConsole = !!state && !!me && (
+    (phase === "DAY_VOTE" && me.alive) ||
+    (phase === "HUNTER_SHOOT" && me.role === "Hunter" && state.pendingHunterShot?.hunterClientId === me.clientId) ||
+    (me.alive && (
+      (phase === "NIGHT_DOPPELGANGER_ACTION" && me.role === "Doppelganger") ||
+      (phase === "NIGHT_CUPID_ACTION" && me.role === "Cupid") ||
+      (phase === "NIGHT_CULT_ACTION" && me.role === "CultLeader") ||
+      (phase === "NIGHT_GUARD_ACTION" && me.role === "Guard") ||
+      (phase === "NIGHT_WOLF_ACTION" && isWolfRole(me.role)) ||
+      (phase === "NIGHT_BIG_BAD_WOLF_ACTION" && isWolfRole(me.role)) ||
+      (phase === "NIGHT_WITCH_ACTION" && me.role === "Witch") ||
+      (phase === "NIGHT_SEER_ACTION" && me.role === "Seer") ||
+      (phase === "NIGHT_SORCERER_ACTION" && me.role === "Sorcerer") ||
+      (phase === "NIGHT_PI_ACTION" && me.role === "PI")
+    ))
+  );
+  const actionConsoleTitle = (() => {
+    if (phase === "DAY_VOTE") return "Cast your vote";
+    if (phase === "HUNTER_SHOOT") return "Hunter shot";
+    if (phase === "NIGHT_DOPPELGANGER_ACTION") return "Copy a role";
+    if (phase === "NIGHT_CUPID_ACTION") return "Bind two lovers";
+    if (phase === "NIGHT_CULT_ACTION") return "Recruit to cult";
+    if (phase === "NIGHT_GUARD_ACTION") return "Protect a player";
+    if (phase === "NIGHT_WOLF_ACTION") return isRecruitWolfNight ? "Choose a new wolf" : "Choose a bite";
+    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return "Choose a new wolf";
+    if (phase === "NIGHT_WITCH_ACTION") return "Use your potion";
+    if (phase === "NIGHT_SEER_ACTION") return "Inspect a player";
+    if (phase === "NIGHT_SORCERER_ACTION") return "Search the dark";
+    if (phase === "NIGHT_PI_ACTION") return "Inspect neighbors";
+    return getPhaseText(room);
+  })();
+  const actionConfirmLabel = (() => {
+    if (phase === "DAY_VOTE") return "Submit vote";
+    if (phase === "HUNTER_SHOOT") return "Shoot";
+    if (phase === "NIGHT_DOPPELGANGER_ACTION") return "Copy role";
+    if (phase === "NIGHT_CUPID_ACTION") return "Bind lovers";
+    if (phase === "NIGHT_CULT_ACTION") return "Recruit";
+    if (phase === "NIGHT_GUARD_ACTION") return "Protect";
+    if (phase === "NIGHT_WOLF_ACTION") return isRecruitWolfNight ? "Confirm curse" : "Confirm bite";
+    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return "Confirm curse";
+    if (phase === "NIGHT_SEER_ACTION" || phase === "NIGHT_SORCERER_ACTION" || phase === "NIGHT_PI_ACTION") return "Inspect";
+    return "Confirm";
+  })();
+  const actionSelectionText = phase === "NIGHT_CUPID_ACTION"
+    ? selectedSeats.length > 0
+      ? selectedSeats.map((seat) => getPlayerNameBySeat(seat)).join(" + ")
+      : "Choose 2 players"
+    : selectedSeat !== null
+      ? getPlayerNameBySeat(selectedSeat)
+      : "Choose a player";
+  const actionSubmittedText = typeof mySubmittedTargetSeat === "number"
+    ? `${phase === "DAY_VOTE" ? "Your vote" : isRecruitWolfNight ? "Your curse" : "Your bite"}: ${getPlayerNameBySeat(mySubmittedTargetSeat)}`
+    : "";
+  const isActionSubmitted = typeof mySubmittedTargetSeat === "number";
+  const actionConfirmDisabled = isActionSubmitted ||
+    (phase === "NIGHT_CUPID_ACTION" ? selectedSeats.length !== 2 : selectedSeat === null);
+
   const actionHint = useMemo(() => {
     if (!state || !me) return "";
     if (phase === "ROLE_REVEAL") return state.roleAcks[clientId] ? "Waiting for everyone to confirm roles." : "Check your role, then confirm.";
@@ -796,14 +916,20 @@ export function OnlineMultiplayerApp() {
               className="wc-signature-input"
               autoFocus
             />
-            <button
-              type="button"
-              onClick={joinRoom}
-              disabled={loading || !displayName.trim() || room.status !== "lobby"}
-              className="w-full rounded-md border-2 border-[var(--color-accent)] bg-[var(--color-accent)] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              Join this room
-            </button>
+            <div className="mt-4 flex flex-col items-center gap-3">
+              <div className="wc-seal-hint">
+                {room.status === "lobby" ? "Press the seal to join" : "This seal is closed"}
+              </div>
+              <button
+                type="button"
+                onClick={joinRoom}
+                disabled={loading || !displayName.trim() || room.status !== "lobby"}
+                className="wc-wax-seal"
+                aria-label="Join this room"
+              >
+                <FingerprintSimple weight="fill" size={44} className="wc-wax-seal-icon" />
+              </button>
+            </div>
           </div>
         </section>
         {visibleTestPanel}
@@ -888,6 +1014,7 @@ export function OnlineMultiplayerApp() {
                 showRoleBadge={!!me && (player.isHuman || phase === "GAME_END" || (isWolfRole(me.role) && isWolfRole(player.role)))}
                 selectionTone={phase === "DAY_VOTE" ? "vote" : isWolfRole(me?.role) ? "wolf" : me?.role === "Witch" ? "witch" : me?.role === "Seer" ? "seer" : "guard"}
                 isInSelectionPhase={!!state}
+                actionChip={playerActionChips[player.seat]}
               />
             ))}
           </div>
@@ -900,16 +1027,168 @@ export function OnlineMultiplayerApp() {
             </div>
 
             <div className="wc-mp-action-stage">
-              <div className="wc-mp-phase-orb">
-                {getPhaseIcon(phase, visualIsNight)}
-              </div>
-              <div className="wc-mp-phase-title">{getPhaseText(room)}</div>
-              <div className="wc-mp-phase-subtitle">{actionHint}</div>
-              {state?.phaseDeadlineAt && (
-                <div className="wc-mp-countdown" style={{ "--timer-progress": `${timerProgress}%` } as CSSProperties}>
-                  <Timer size={15} />
-                  <span>{formatSeconds(timerLeftMs)}</span>
+              {canUseActionConsole ? (
+                <div className="wc-mp-action-console" role="group" aria-label={actionConsoleTitle}>
+                  <div className="wc-mp-action-console__head">
+                    <div>
+                      <span>{roleLabel[me.role]}</span>
+                      <strong>{actionConsoleTitle}</strong>
+                    </div>
+                    {state?.phaseDeadlineAt && (
+                      <div className="wc-mp-countdown" style={{ "--timer-progress": `${timerProgress}%` } as CSSProperties}>
+                        <Timer size={15} />
+                        <span>{formatSeconds(timerLeftMs)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="wc-mp-action-console__body">
+                    <p>{actionHint}</p>
+
+                    {actionSubmittedText && (
+                      <div className="wc-mp-action-console__submitted">
+                        <CheckCircle size={15} weight="fill" />
+                        <span>{actionSubmittedText}</span>
+                      </div>
+                    )}
+
+                    {phase === "DAY_VOTE" && (
+                      <div className="wc-mp-vote-status">
+                        {aliveVoteStatus.map(({ player, voted }) => (
+                          <span key={player.clientId} className={voted ? "is-voted" : ""}>
+                            {voted ? <CheckCircle size={12} weight="fill" /> : <Timer size={12} />}
+                            {player.displayName}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {phase === "NIGHT_WITCH_ACTION" ? (
+                      <>
+                        <div className="wc-mp-witch-target">
+                          Wolf target: {wolfTarget ? `Seat ${wolfTarget.seat + 1}. ${wolfTarget.displayName}` : "No target visible"}
+                          <div className="wc-mp-mini-status">
+                            <span className={witchHealUsed ? "is-used" : ""}>Heal {witchHealUsed ? "used" : "ready"}</span>
+                            <span className={witchPoisonUsed ? "is-used" : ""}>Poison {witchPoisonUsed ? "used" : "ready"}</span>
+                          </div>
+                        </div>
+                        {!witchPoisonUsed && (
+                          <div className="wc-mp-action-target-grid">
+                            {actionTargets.map((player) => (
+                              <button
+                                key={player.clientId}
+                                type="button"
+                                className={selectedSeat === player.seat ? "is-selected" : ""}
+                                onClick={() => {
+                                  setSelectedSeats([]);
+                                  setSelectedSeat(player.seat);
+                                }}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={getPlayerAvatar(player.clientId)} alt="" />
+                                <span>Seat {player.seat + 1}</span>
+                                <strong>{player.displayName}</strong>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <div className="wc-mp-action-console__actions">
+                          <button type="button" disabled={witchHealUsed || !wolfTarget} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: null, witchAction: "save" })}>
+                            <Shield size={15} /> Save target
+                          </button>
+                          <button type="button" disabled={witchPoisonUsed || selectedSeat === null} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: selectedSeat, witchAction: "poison" })}>
+                            <Skull size={15} /> Poison {selectedSeat !== null ? getPlayerNameBySeat(selectedSeat) : "selected"}
+                          </button>
+                          <button type="button" onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: null, witchAction: "pass" })}>
+                            Pass
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {actionTargets.length > 0 && !isActionSubmitted && (
+                          <div className="wc-mp-action-target-grid">
+                            {actionTargets.map((player) => {
+                              const selected = phase === "NIGHT_CUPID_ACTION" ? selectedSeats.includes(player.seat) : selectedSeat === player.seat;
+                              const chip = playerActionChips[player.seat];
+                              return (
+                                <button
+                                  key={player.clientId}
+                                  type="button"
+                                  className={selected ? "is-selected" : ""}
+                                  onClick={() => {
+                                    if (phase === "NIGHT_CUPID_ACTION") {
+                                      setSelectedSeat(null);
+                                      setSelectedSeats((seats) => {
+                                        if (seats.includes(player.seat)) return seats.filter((seat) => seat !== player.seat);
+                                        return [...seats, player.seat].slice(-2);
+                                      });
+                                      return;
+                                    }
+                                    setSelectedSeats([]);
+                                    setSelectedSeat(player.seat);
+                                  }}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={getPlayerAvatar(player.clientId)} alt="" />
+                                  <span>Seat {player.seat + 1}</span>
+                                  <strong>{player.displayName}</strong>
+                                  {chip && <em data-tone={chip.tone ?? "vote"}>{chip.label}</em>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {!isActionSubmitted && (
+                          <div className="wc-mp-action-console__actions">
+                            <div className="wc-mp-action-console__selection">{actionSelectionText}</div>
+                            <button type="button" disabled={actionConfirmDisabled} onClick={submitSelectedAction}>
+                              {phase === "DAY_VOTE" ? <CheckCircle size={15} /> : phase === "HUNTER_SHOOT" ? <Crosshair size={15} /> : isWolfRole(me.role) ? <Skull size={15} /> : <Shield size={15} />}
+                              {actionConfirmLabel}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {latestSeerCheck && me.role === "Seer" && (
+                      <div className={latestSeerCheck.isWolf ? "wc-mp-seer-result is-wolf" : "wc-mp-seer-result"}>
+                        Seer result: Seat {latestSeerCheck.targetSeat + 1}
+                        {latestSeerTarget ? ` ${latestSeerTarget.displayName}` : ""} is{" "}
+                        {latestSeerCheck.isWolf ? `Wolf (${roleLabel[latestSeerCheck.targetRole]})` : "Village"}
+                      </div>
+                    )}
+
+                    {latestSorcererCheck && me.role === "Sorcerer" && (
+                      <div className={latestSorcererCheck.result !== "other" ? "wc-mp-seer-result is-wolf" : "wc-mp-seer-result"}>
+                        Sorcerer result: Seat {latestSorcererCheck.targetSeat + 1}
+                        {latestSorcererTarget ? ` ${latestSorcererTarget.displayName}` : ""} is{" "}
+                        {latestSorcererCheck.result === "wolf" ? "a wolf" : latestSorcererCheck.result === "seer" ? "the Seer" : "something else"}
+                      </div>
+                    )}
+
+                    {latestPiCheck && me.role === "PI" && (
+                      <div className={latestPiCheck.hasEvil ? "wc-mp-seer-result is-wolf" : "wc-mp-seer-result"}>
+                        P.I. result: Seats {latestPiCheck.seats.map((seat) => seat + 1).join(", ")}{" "}
+                        {latestPiCheck.hasEvil ? "include at least one suspicious player." : "look clear."}
+                      </div>
+                    )}
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <div className="wc-mp-phase-orb">
+                    {getPhaseIcon(phase, visualIsNight)}
+                  </div>
+                  <div className="wc-mp-phase-title">{getPhaseText(room)}</div>
+                  <div className="wc-mp-phase-subtitle">{actionHint}</div>
+                  {state?.phaseDeadlineAt && (
+                    <div className="wc-mp-countdown" style={{ "--timer-progress": `${timerProgress}%` } as CSSProperties}>
+                      <Timer size={15} />
+                      <span>{formatSeconds(timerLeftMs)}</span>
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -969,28 +1248,7 @@ export function OnlineMultiplayerApp() {
                 </div>
               )}
 
-              {phase === "DAY_VOTE" && (
-                <div className="wc-mp-vote-status">
-                  {aliveVoteStatus.map(({ player, voted }) => (
-                    <span key={player.clientId} className={voted ? "is-voted" : ""}>
-                      {voted ? <CheckCircle size={12} weight="fill" /> : <Timer size={12} />}
-                      Seat {player.seat + 1}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {phase === "NIGHT_WITCH_ACTION" && me?.role === "Witch" && (
-                <div className="wc-mp-witch-target">
-                  Wolf target: {wolfTarget ? `Seat ${wolfTarget.seat + 1}. ${wolfTarget.displayName}` : "No target visible"}
-                  <div className="wc-mp-mini-status">
-                    <span className={witchHealUsed ? "is-used" : ""}>Heal {witchHealUsed ? "used" : "ready"}</span>
-                    <span className={witchPoisonUsed ? "is-used" : ""}>Poison {witchPoisonUsed ? "used" : "ready"}</span>
-                  </div>
-                </div>
-              )}
-
-              {latestSeerCheck && me?.role === "Seer" && (
+              {!canUseActionConsole && latestSeerCheck && me?.role === "Seer" && (
                 <div className={latestSeerCheck.isWolf ? "wc-mp-seer-result is-wolf" : "wc-mp-seer-result"}>
                   Seer result: Seat {latestSeerCheck.targetSeat + 1}
                   {latestSeerTarget ? ` ${latestSeerTarget.displayName}` : ""} is{" "}
@@ -998,7 +1256,7 @@ export function OnlineMultiplayerApp() {
                 </div>
               )}
 
-              {latestSorcererCheck && me?.role === "Sorcerer" && (
+              {!canUseActionConsole && latestSorcererCheck && me?.role === "Sorcerer" && (
                 <div className={latestSorcererCheck.result !== "other" ? "wc-mp-seer-result is-wolf" : "wc-mp-seer-result"}>
                   Sorcerer result: Seat {latestSorcererCheck.targetSeat + 1}
                   {latestSorcererTarget ? ` ${latestSorcererTarget.displayName}` : ""} is{" "}
@@ -1006,7 +1264,7 @@ export function OnlineMultiplayerApp() {
                 </div>
               )}
 
-              {latestPiCheck && me?.role === "PI" && (
+              {!canUseActionConsole && latestPiCheck && me?.role === "PI" && (
                 <div className={latestPiCheck.hasEvil ? "wc-mp-seer-result is-wolf" : "wc-mp-seer-result"}>
                   P.I. result: Seats {latestPiCheck.seats.map((seat) => seat + 1).join(", ")}{" "}
                   {latestPiCheck.hasEvil ? "include at least one suspicious player." : "look clear."}
@@ -1058,34 +1316,6 @@ export function OnlineMultiplayerApp() {
               )}
             </div>
 
-            {(selectedSeat !== null || selectedSeats.length > 0) && (
-              <div className="wc-mp-selection-bar">
-                <span>
-                  {phase === "NIGHT_CUPID_ACTION"
-                    ? `Selected ${selectedSeats.map((seat) => seat + 1).join(", ") || "none"}`
-                    : `Selected seat ${(selectedSeat ?? 0) + 1}`}
-                </span>
-                <button type="button" disabled={phase === "NIGHT_CUPID_ACTION" && selectedSeats.length !== 2} onClick={submitSelectedAction}>
-                  {phase === "DAY_VOTE" ? <CheckCircle size={15} /> : phase === "HUNTER_SHOOT" ? <Crosshair size={15} /> : <Shield size={15} />}
-                  Confirm
-                </button>
-              </div>
-            )}
-
-            {phase === "NIGHT_WITCH_ACTION" && me?.role === "Witch" && (
-              <div className="wc-mp-witch-actions">
-                <button type="button" disabled={witchHealUsed || !wolfTarget} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: null, witchAction: "save" })}>
-                  Save wolf target
-                </button>
-                <button type="button" disabled={witchPoisonUsed || selectedSeat === null} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: selectedSeat, witchAction: "poison" })}>
-                  <Skull size={15} /> Poison selected
-                </button>
-                <button type="button" onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: null, witchAction: "pass" })}>
-                  Pass
-                </button>
-              </div>
-            )}
-
           </section>
 
           <div className="hidden md:flex w-[220px] lg:w-[240px] xl:w-[260px] 2xl:w-[300px] flex-col gap-3 shrink-0 overflow-y-auto overflow-x-visible scrollbar-hide pt-2 pb-2 px-1 -mx-1">
@@ -1103,6 +1333,7 @@ export function OnlineMultiplayerApp() {
                 showRoleBadge={!!me && (player.isHuman || phase === "GAME_END" || (isWolfRole(me.role) && isWolfRole(player.role)))}
                 selectionTone={phase === "DAY_VOTE" ? "vote" : isWolfRole(me?.role) ? "wolf" : me?.role === "Witch" ? "witch" : me?.role === "Seer" ? "seer" : "guard"}
                 isInSelectionPhase={!!state}
+                actionChip={playerActionChips[player.seat]}
               />
             ))}
           </div>

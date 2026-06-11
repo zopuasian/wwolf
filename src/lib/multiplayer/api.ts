@@ -62,6 +62,9 @@ export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): 
   const canSeeNightTarget =
     room.state.phase === "GAME_END" ||
     (room.state.phase === "NIGHT_WITCH_ACTION" && viewer?.role === "Witch");
+  const canSeeWolfVotes =
+    room.state.phase === "GAME_END" ||
+    ((room.state.phase === "NIGHT_WOLF_ACTION" || room.state.phase === "NIGHT_BIG_BAD_WOLF_ACTION") && !!viewer && isWolfRole(viewer.role));
   return {
     ...room,
     state: {
@@ -72,10 +75,10 @@ export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): 
       }),
       nightActions: {
         lastGuardTarget: viewer?.role === "Guard" ? room.state.nightActions.lastGuardTarget : undefined,
-        wolfVotes: {},
+        wolfVotes: canSeeWolfVotes ? room.state.nightActions.wolfVotes : {},
         wolfTarget: canSeeNightTarget ? room.state.nightActions.wolfTarget : undefined,
         wolfTargets: room.state.phase === "GAME_END" ? room.state.nightActions.wolfTargets : undefined,
-        bigBadWolfRecruitVotes: {},
+        bigBadWolfRecruitVotes: canSeeWolfVotes ? room.state.nightActions.bigBadWolfRecruitVotes : {},
         bigBadWolfRecruitTarget: room.state.phase === "GAME_END" ? room.state.nightActions.bigBadWolfRecruitTarget : undefined,
         witchSave: room.state.phase === "GAME_END" ? room.state.nightActions.witchSave : undefined,
         witchPoison: room.state.phase === "GAME_END" ? room.state.nightActions.witchPoison : undefined,

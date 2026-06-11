@@ -29,6 +29,10 @@ interface PlayerCardCompactProps {
   isBadgeCandidate?: boolean;
   variant?: "default" | "mobile";
   isInSelectionPhase?: boolean;
+  actionChip?: {
+    label: string;
+    tone?: "vote" | "wolf" | "curse";
+  };
 }
 
 export function PlayerCardCompact({
@@ -51,6 +55,7 @@ export function PlayerCardCompact({
   isBadgeCandidate = false,
   variant = "default",
   isInSelectionPhase = false,
+  actionChip,
 }: PlayerCardCompactProps) {
   const t = useTranslations();
   const isDead = !player.alive;
@@ -389,6 +394,17 @@ export function PlayerCardCompact({
                 "text-xs",
                 isSpeaking ? "text-[var(--color-gold)]" : "text-[var(--text-secondary)]"
               )}>{basicInfoLabel}</span>
+            </motion.div>
+          )}
+          {isReady && actionChip && (
+            <motion.div
+              initial={{ opacity: 0, y: 2 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="wc-player-card__action-chip"
+              data-tone={actionChip.tone ?? "vote"}
+              title={actionChip.label}
+            >
+              {actionChip.label}
             </motion.div>
           )}
           {isReady && showModel && modelLabel && (
