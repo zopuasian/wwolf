@@ -28,7 +28,7 @@ export function normalizeRoomCode(code: string): string {
 export function createRoomCode(): string {
   let out = "";
   for (let i = 0; i < 6; i += 1) {
-    out += ROOM_CODE_ALPHABET[Math.floor(Math.random() * ROOM_CODE_ALPHABET.length)];
+    out += ROOM_CODE_ALPHABET[randomInt(ROOM_CODE_ALPHABET.length)];
   }
   return out;
 }
@@ -48,10 +48,25 @@ export function createSeat(clientId: string, displayName: string, seat: number):
   };
 }
 
+function randomInt(maxExclusive: number): number {
+  if (!Number.isSafeInteger(maxExclusive) || maxExclusive <= 0) {
+    throw new Error("Invalid random range.");
+  }
+
+  const maxUint32 = 0xffffffff;
+  const limit = maxUint32 - (maxUint32 % maxExclusive);
+  const buffer = new Uint32Array(1);
+
+  while (true) {
+    globalThis.crypto.getRandomValues(buffer);
+    if (buffer[0] < limit) return buffer[0] % maxExclusive;
+  }
+}
+
 function shuffle<T>(items: T[]): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = randomInt(i + 1);
     [out[i], out[j]] = [out[j], out[i]];
   }
   return out;

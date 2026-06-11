@@ -22,14 +22,17 @@ export function dbRoomToRoom(row: DbRoom): MultiplayerRoom {
       ? (row.state as Record<string, unknown>)
       : null;
   const rolePreset = typeof stateObject?.rolePreset === "string" ? stateObject.rolePreset as MultiplayerRolePreset : "classic";
+  const statePlayers = Array.isArray(stateObject?.players) ? stateObject.players : null;
+  const storedPlayerCount = typeof stateObject?.playerCount === "number" ? stateObject.playerCount : null;
+  const playerCount = statePlayers?.length ?? storedPlayerCount ?? row.player_count;
   return {
     code: row.code,
     hostClientId: row.host_client_id,
-    playerCount: row.player_count,
+    playerCount,
     status: row.status,
     seats: Array.isArray(row.seats) ? (row.seats as unknown as MultiplayerSeat[]) : [],
     state: stateObject && "phase" in stateObject ? (row.state as unknown as MultiplayerRoom["state"]) : null,
-    roleConfig: normalizeRoleConfig(stateObject?.roleConfig, row.player_count, rolePreset),
+    roleConfig: normalizeRoleConfig(stateObject?.roleConfig, playerCount, rolePreset),
     rolePreset,
     actionSeq: row.action_seq,
     updatedAt: row.updated_at,
@@ -39,10 +42,13 @@ export function dbRoomToRoom(row: DbRoom): MultiplayerRoom {
 export function roomToDbPatch(room: MultiplayerRoom) {
   return {
     host_client_id: room.hostClientId,
-    player_count: room.playerCount,
+    // Older deployed Supabase tables may still have an 8-12 check constraint.
+    // Keep the true 5-12 room size in JSON state and store a DB-compatible mirror.
+    player_count: Math.max(8, room.playerCount),
     status: room.status,
     seats: room.seats as unknown as Json,
     state: (room.state ?? {
+      playerCount: room.playerCount,
       roleConfig: room.roleConfig ?? getDefaultMultiplayerRoles(room.playerCount, room.rolePreset),
       rolePreset: room.rolePreset ?? "classic",
     }) as unknown as Json,

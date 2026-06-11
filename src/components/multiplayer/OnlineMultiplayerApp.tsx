@@ -26,7 +26,7 @@ import {
 const roleLabel = MULTIPLAYER_ROLE_LABEL;
 
 const MIN_PLAYERS_TO_START = 5;
-const PLAYER_COUNT_OPTIONS = [8, 9, 10, 11, 12];
+const PLAYER_COUNT_OPTIONS = [5, 6, 7, 8, 9, 10, 11, 12];
 const VISIBLE_TEST_STEP_DELAY_MS = 2600;
 
 function isNightPhase(phase: string) {
