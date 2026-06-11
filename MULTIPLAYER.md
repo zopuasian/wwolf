@@ -1,16 +1,41 @@
 # Wolfcha Online Multiplayer
 
-The root route `/` now runs the online human-vs-human multiplayer client.
+Wolfcha now runs as an online human-vs-human Werewolf game on the root route `/`.
+
+The multiplayer build removes AI seats from the main experience. Every active seat belongs to a real player, and the server only returns the information each player is allowed to know.
+
+## Product Shape
+
+- Human-only online rooms.
+- 5 to 12 players per room.
+- Short room code and invite link.
+- Host-controlled lobby settings.
+- Role preset selection for quick starts.
+- Custom role setup before the match begins.
+- Real-time-feeling sync through Supabase-backed polling.
+- No custom WebSocket server is required.
 
 ## Deployment Shape
 
-This implementation is Vercel-compatible because Vercel only serves the Next.js app and short-lived API routes. Room sync uses sanitized API polling against Supabase/Postgres, not a WebSocket server running inside Vercel Functions.
+The app is Vercel-compatible because Vercel only serves:
 
-If you prefer a VPS, the same app can be hosted with `next start`; no separate realtime server is required as long as Supabase is still used.
+- the Next.js frontend
+- short-lived Next.js API routes
+- sanitized room snapshots
+
+Persistent room state lives in Supabase/Postgres. This avoids keeping a long-running multiplayer process inside Vercel Functions.
+
+If you prefer a VPS, the same app can run with `next start` as long as it can reach the same Supabase project.
+
+Production custom domain:
+
+```text
+https://masoi.nguynchupanh.com
+```
 
 ## Required Environment Variables
 
-Set these in Vercel or your VPS environment:
+Set these locally, on Vercel, or in your VPS process environment:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=...
@@ -18,27 +43,205 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` can be used instead of `NEXT_PUBLIC_SUPABASE_ANON_KEY` if that is how your Supabase project is configured.
+Supabase projects that expose the newer publishable key can use this public key name as well:
+
+```bash
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
+```
+
+The service role key must stay server-side only. It is used by API routes to read and update authoritative room state.
 
 ## Database Migration
 
-Run the migration in:
+Run the migration in Supabase SQL Editor:
 
 ```text
 supabase/migrations/20260610_multiplayer_rooms.sql
 ```
 
-It creates `public.multiplayer_rooms`. The table intentionally has no public read/write policy; all access goes through API routes so hidden roles are never returned to the wrong player.
+The migration creates the multiplayer room storage used by the online client. Hidden data such as roles, night choices, and private wolf chat should not be queried directly by the browser. All browser reads should go through API routes that sanitize the snapshot for the current player.
 
-## Current Gameplay Scope
+## Room Lifecycle
 
-- Human-only rooms, 8-12 seats.
-- Room code and invite link.
-- Host starts once the room is full.
-- Roles are assigned server-side.
-- Each player sees their own role. Wolves can see wolf teammates.
-- Guard, wolves, witch, and seer night actions.
-- Day chat, host-controlled vote start, all-player voting.
-- Basic win checks: wolves win when wolves are at least equal to non-wolves; village wins when all wolves are dead.
+1. Player signs a name on the entry card.
+2. Player creates a room or joins with a room code.
+3. Host chooses a default role preset or customizes the room roles.
+4. Other players join from their own devices.
+5. Host starts when at least 5 real players are seated.
+6. Server shuffles the selected role list and assigns roles.
+7. Each player receives a one-time role reveal card.
+8. The match cycles through night, discussion, vote, and resolution until a win condition is reached.
 
-Advanced tabletop events such as Hunter shot, Idiot reveal, sheriff/badge, and White Wolf King explosion are not wired into the online reducer yet.
+## Role Setup
+
+Role setup is intentionally editable before the game starts so groups can tune the table for their own style.
+
+Default presets are meant for newer groups. Custom setup is for groups that already know which mix of village, wolf, and special roles they want.
+
+Rules for setup:
+
+- Role count must match seated player count.
+- The room must contain at least one wolf-team role.
+- The room must contain enough village-team roles for a playable game.
+- Roles are shuffled server-side when the match starts.
+
+## Gameplay Flow
+
+### Night
+
+Night actions run in 15-second phases. The current player's available action appears in a centered action console.
+
+The action console contains:
+
+- phase title
+- timer
+- target list
+- relevant role note
+- confirm button
+- result/status text
+
+The console closes automatically when the phase ends.
+
+### Day Discussion
+
+Discussion lasts 60 seconds. Players use the public day chat to accuse, defend, and coordinate.
+
+The host can force-stop discussion if the table is ready to vote.
+
+### Vote
+
+Voting lasts 15 seconds. Vote selection and confirmation happen inside the same center action console.
+
+Player cards show vote status chips such as:
+
+```text
+Vote: Aki
+```
+
+The host can force-stop voting if needed.
+
+### Resolution
+
+The game resolves deaths, role effects, and win conditions. If the game continues, the match automatically advances to the next night. The host does not need to press a separate next-night button.
+
+## Chat Visibility
+
+Wolfcha separates chat by phase and team:
+
+- Day chat is public to all players.
+- Wolf night chat is visible only to wolves.
+- Village players must never receive wolf night messages in their sanitized room snapshot.
+
+The wolf night chat stays available below the role action console so wolves can coordinate while choosing a target.
+
+## Implemented Role Notes
+
+The online reducer supports classic and expanded Werewolf roles. Important current behavior:
+
+- Villager has no night action.
+- Werewolves choose the night bite together.
+- Seer investigates one player and receives a result.
+- Witch sees who was attacked and can heal once and poison once.
+- Guard can protect a player.
+- Hunter can shoot when eliminated.
+- Idiot/Prince-style survival reveal roles can prevent a normal vote death when their rule applies.
+- Cursed-style roles can join the wolf team when their rule converts them.
+- Wolf Cub death can empower the wolf team on the following night.
+- Diseased-style penalties can affect the next wolf bite when implemented by room state.
+- Big Bad Wolf is customized for this project.
+
+## Big Bad Wolf Rule
+
+The project-specific Big Bad Wolf behavior is:
+
+1. If any wolf dies by any reason, the wolf team becomes eligible for a recruit night.
+2. The recruit night only happens if Big Bad Wolf is still alive.
+3. On that next wolf phase, wolves choose one non-wolf player to become a wolf.
+4. Wolves cannot bite on the same night they must recruit.
+5. The recruit choice uses the same wolf phase UI rather than a separate phase.
+
+This keeps the night flow compact and avoids making players wait through an extra wolf-only stage.
+
+## Timers
+
+Current phase timers:
+
+```text
+Night phase: 15s
+Discussion:  60s
+Vote:        15s
+```
+
+Timed phases auto-advance when the server resolves the room state. Host force-stop controls are still available for discussion and voting.
+
+## Local Development
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Run locally:
+
+```bash
+pnpm dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Open UI test mode:
+
+```text
+http://localhost:3000/?uiTest=1
+```
+
+## Test Commands
+
+Recommended checks:
+
+```bash
+pnpm test:multiplayer
+pnpm test:multiplayer:ui
+pnpm build
+```
+
+Manual test checklist:
+
+- create a room
+- join from another browser/session
+- edit role setup before game start
+- start with exactly 5 players
+- verify role reveal appears once, then hides after acknowledgement
+- verify night action console appears and closes by phase
+- verify seer result appears after investigation
+- verify witch heal/poison are each one-use
+- verify wolf night chat is hidden from non-wolves
+- verify day discussion auto-advances to vote
+- verify vote auto-resolves after the timer
+- verify day result advances to the next night
+- verify Big Bad Wolf recruit night disables normal wolf bite
+
+## Vercel Deployment
+
+Deploy production:
+
+```bash
+npx vercel@latest --prod --yes
+```
+
+The Vercel project must include the Supabase environment variables listed above.
+
+If a Vercel preview URL is protected by Vercel authentication, test with the configured custom production domain instead.
+
+## Security Notes
+
+- Do not expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.
+- Do not read raw room rows directly from client code.
+- Keep hidden roles, wolf chat, night actions, and private results behind API sanitization.
+- Prefer server-side role assignment and role shuffling.
+- Treat the room snapshot returned to each player as the product boundary for secrecy.

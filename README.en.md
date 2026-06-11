@@ -2,129 +2,204 @@
 
 <div align="center">
   <img src="public/logo.png" alt="Wolfcha Logo" width="240" />
-  <h3>Play Werewolf with AI — Watch the Models Battle It Out</h3>
+  <h3>Online Werewolf for Friends - Human Players, Hidden Roles, Real-Time Deception</h3>
   <p>
-    <a href="https://wolf-cha.com">Play Online (wolf-cha.com)</a>
+    <a href="https://masoi.nguynchupanh.com">Play Online</a>
   </p>
 </div>
 
 ## 🙏 Sponsors
 
-![ZenMux Banner](public/sponsor/zenmux-banner.png)
-
-Current sponsors:
-
-*   [ZenMux](https://zenmux.ai/invite/DMMBVZ) - Powers the core game flow, roleplay, and summary features with AI models
-*   [Dashscope](https://bailian.console.aliyun.com/) - Provides additional AI model support
-*   [Watcha](https://watcha.cn/) - Provides AI model capabilities and showcase platform
+<table>
+  <tr>
+    <td width="120" align="center">
+      <img src="public/sponsor/zenmux.png" alt="ZenMux Logo" width="100" />
+    </td>
+    <td>
+      <strong>ZenMux</strong><br/>
+      Supported the original AI edition with model routing and orchestration.
+    </td>
+  </tr>
+  <tr>
+    <td width="120" align="center">
+      <img src="public/sponsor/minimax.png" alt="MiniMax Logo" width="100" />
+    </td>
+    <td>
+      <strong>MiniMax</strong><br/>
+      The original AI edition of Wolfcha was powered by MiniMax LLM and TTS.
+    </td>
+  </tr>
+  <tr>
+    <td width="120" align="center">
+      <img src="public/sponsor/watcha.svg" alt="Watcha Logo" width="100" />
+    </td>
+    <td>
+      <strong>Watcha</strong><br/>
+      Supported the early showcase and community context for the project.
+    </td>
+  </tr>
+</table>
 
 ---
 
-> **Note**: This project was born at the **"Guancha + ModelScope Global Hackathon"** as an AI-native game.
-> 
-> "Wolfcha" combines Wolf (Werewolf) + Cha (猹, a character from Chinese literature). It's a nod to the hackathon host while also capturing the fun of watching AI characters interact — like spectating a show.
+> Note: Wolfcha began as an AI-native Werewolf experiment. The current main experience has been rebuilt for online human-vs-human multiplayer. AI players are no longer used to fill the table.
 
 ## 📖 Background
 
-After graduating, getting 8-12 people together for a proper Werewolf game became nearly impossible. While Werewolf is fundamentally a social game, its core appeal — logical deduction, verbal sparring, and reading between the lines — remains captivating even without the social element.
+Wolfcha is a social deduction game inspired by Werewolf. Players join the same online room from different devices, receive secret roles, talk, bluff, accuse, vote, and survive through alternating nights and days.
 
-To enjoy Werewolf anytime, anywhere, we built this **AI-powered version**. As the name suggests, every player except you (Seer, Witch, Hunter, Guard, Werewolves, etc.) is controlled by AI.
+The project keeps the original Wolfcha atmosphere: parchment lobby, red seal entry, retro portraits, role reveal cards, event messages, and the day/night eye-blink fade animation. The gameplay has been reworked so real players share the table online.
 
 ## ✨ Core Features
 
-### 1. Dual-Layer AI Roleplay
-Thanks to the growing context windows and instruction-following capabilities of large language models (LLMs), we've implemented a sophisticated dual-layer roleplay system:
-*   **Layer 1**: The AI plays a "virtual player" with a unique personality and background.
-*   **Layer 2**: This virtual player then takes on a Werewolf role (e.g., Seer) and speaks, bluffs, and reasons based on the game state.
+### 1. Online Human Multiplayer
 
-Every conversation is generated in real-time, full of unpredictability and fun.
+- Create or join a room with a short invite code.
+- Play together from different locations and devices.
+- No AI seats and no automatic bot participation.
+- Supports rooms from 5 to 12 players.
+- Host can start once the room has enough real players.
 
-### 2. AI Model Arena
-**This isn't just Werewolf — it's a battleground for AI models.**
+### 2. Room Role Setup
 
-We've integrated multiple top AI models to compete against each other. After each game, you can see which model powered each character. It's a hidden "Turing test" — observe which model reasons sharply, which one seems "adorably clueless," and which one sounds the most human.
+- Choose a default preset for a quick start.
+- Edit the role list before starting.
+- Reopen room settings after room creation while still in the lobby.
+- Role counts are validated against the number of seated players.
+- Roles are shuffled before assignment each game.
 
-Current built-in models (subject to project configuration):
-*   **DeepSeek V3.2**
-*   **Qwen3-235B-A22B**
-*   **Kimi K2**
-*   **Gemini 3 Flash**
-*   **Seed 1.8 (ByteDance)**
+### 3. Focused Role Actions
 
-<div align="center">
-  <img src="https://img.shields.io/badge/DeepSeek-V3.2-1B75FF?style=for-the-badge" alt="DeepSeek" />
-  <img src="https://img.shields.io/badge/Qwen-Qwen3-5A6CFF?style=for-the-badge" alt="Qwen" />
-  <img src="https://img.shields.io/badge/Moonshot%20AI-Kimi-111111?style=for-the-badge" alt="Kimi" />
-  <br/>
-  <img src="https://img.shields.io/badge/ByteDance-Seed-333333?style=for-the-badge" alt="Seed" />
-</div>
+- Night and vote actions use a centered action console.
+- Targets, confirm controls, timer, and result text stay in the same popup.
+- The popup closes automatically when its phase ends.
+- Wolf night chat remains visible below the action area so wolves do not miss messages.
+- Player cards show action chips such as `Vote: Aki`, `Bite: Sarah`, or `Curse: Kevin` when relevant.
 
-### 3. Immersive Retro Experience
-While we don't have a professional art team, we've crafted a polished UI/UX:
-*   **Retro Design Style**: Clean layouts with vintage color palettes.
-*   **Dynamic Interactions**:
-    *   Eye-blink transitions for day/night changes.
-    *   Character lip-sync animations during speech.
-    *   Unique character portraits for special roles during night actions.
+### 4. Day, Night, Chat, And Timers
 
-## 🧭 Roadmap
+- Night phases last 15 seconds.
+- Day discussion lasts 60 seconds.
+- Voting lasts 15 seconds.
+- Day resolution advances automatically to the next night.
+- Host can force-stop discussion and voting when needed.
+- Day chat is public.
+- Wolf night chat is private to wolves only.
 
-We're continuing to improve:
-*   **Mobile Optimization**: Play seamlessly on any device.
-*   **Flexible Player Count**: Support 8-12 player custom games.
-*   **Post-Game Review / Chat**: Reflect on strategies and memorable moments.
-*   **Special Abilities**: Unique mechanics like time rewind and AI insight.
-*   **Custom Model Selection**: Choose which AI models join your game.
-*   **Multiplayer Mode**: Play with friends alongside AI characters.
-*   **Character Ratings**: Upvote standout personalities/models to find the best Werewolf players.
+### 5. Expanded Role Logic
+
+Wolfcha includes classic and advanced Werewolf roles, including Villager, Werewolf, Seer, Witch, Hunter, Guard, Cupid, Idiot, Prince, Diseased, Cursed, Wolf Cub, and Big Bad Wolf.
+
+Important rules implemented in the online version:
+
+- Witch heal and poison are each limited to one use.
+- Seer receives an investigation result.
+- Hunter can shoot when eliminated.
+- Big Bad Wolf has been customized: if any wolf dies and the Big Bad Wolf is still alive, the next wolf night becomes a recruit night. Wolves choose one non-wolf to join the wolf team, and they cannot bite on that night.
+- If wolves must recruit on a night, the normal wolf bite is disabled for that same phase.
+
+## 🎮 How To Play
+
+1. Open [masoi.nguynchupanh.com](https://masoi.nguynchupanh.com).
+2. Sign your name with the red seal.
+3. Create a room or join with a room code/link.
+4. The host chooses a role preset or custom role setup.
+5. When enough players are seated, the host starts the game.
+6. Read your role reveal once, acknowledge it, then play from the table.
+7. Use the center action console when your role or the village needs a decision.
 
 ## 🛠️ Tech Stack
 
-Built with modern web technologies:
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Supabase/Postgres for online room state
+- Vercel for hosting
 
-*   **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-*   **Language**: [TypeScript](https://www.typescriptlang.org/)
-*   **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
-*   **UI Components**: [Radix UI](https://www.radix-ui.com/), [Lucide React](https://lucide.dev/)
-*   **State Management**: [Jotai](https://jotai.org/) 
-*   **Editor**: [Tiptap](https://tiptap.dev/) (For rich text interactions)
-*   **Animations**: [Framer Motion](https://www.framer.com/motion/)
-*   **Avatar Generation**: [DiceBear](https://www.dicebear.com/) (Notionists style)
-*   **AI Integration**: [ZenMux](https://zenmux.ai/invite/DMMBVZ) (Unified interface for LLMs)
+The online multiplayer flow uses Supabase-backed room snapshots and Next.js API routes. It does not require a custom WebSocket server, which makes it suitable for Vercel deployment.
 
 ## 🚀 Local Development
 
-To run this project locally:
-
-1.  **Clone the repository**
+Install dependencies:
 
 ```bash
-git clone https://github.com/oil-oil/wolfcha.git
-cd wolfcha
-```
-
-2.  **Install dependencies**
-
-```bash
-# Using pnpm (recommended)
 pnpm install
-
-# Or using npm
-npm install
 ```
 
-3.  **Configure environment variables**
+Create an environment file:
 
-You'll need to set up API keys (ZenMux, etc.) for full functionality. Refer to `.env.example` and create your `.env.local`.
+```bash
+cp .env.example .env.local
+```
 
-4.  **Start the development server**
+Required Supabase variables:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+If your Supabase project exposes the newer publishable key name, this is also supported:
+
+```bash
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
+```
+
+Run the development server:
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open:
+
+```text
+http://localhost:3000
+```
+
+## 🗄️ Database
+
+Apply the multiplayer migration in Supabase SQL Editor:
+
+```text
+supabase/migrations/20260610_multiplayer_rooms.sql
+```
+
+This creates the tables and policies needed for online rooms, seats, messages, actions, and synchronized game state.
+
+## 🧪 Testing
+
+Useful local checks:
+
+```bash
+pnpm test:multiplayer
+pnpm test:multiplayer:ui
+pnpm build
+```
+
+The UI test mode can be opened with:
+
+```text
+http://localhost:3000/?uiTest=1
+```
+
+## ☁️ Deploy
+
+The project can run on Vercel when Supabase environment variables are configured.
+
+Production:
+
+```text
+https://masoi.nguynchupanh.com
+```
+
+Deploy command:
+
+```bash
+npx vercel@latest --prod --yes
+```
 
 ## 📄 License
 
-MIT
+MIT License

@@ -74,7 +74,7 @@ export function PlayerCardCompact({
     
     // 当从 loading 变为 ready 时触发动画（首次渲染时 wasReady 为 null，不触发）
     if (isReady && wasReady === false) {
-      setRevealPop(true);
+      queueMicrotask(() => setRevealPop(true));
       const timer = window.setTimeout(() => setRevealPop(false), 600);
       return () => window.clearTimeout(timer);
     }

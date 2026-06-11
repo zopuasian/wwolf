@@ -686,7 +686,7 @@ export function OnlineMultiplayerApp() {
     return chipBySeat;
   }, [me, phase, state]);
 
-  const isRecruitWolfNight = phase === "NIGHT_WOLF_ACTION" && state?.roleState?.bigBadWolfRecruitNight === state.day;
+  const isRecruitWolfNight = phase === "NIGHT_WOLF_ACTION" && !!state && state.roleState?.bigBadWolfRecruitNight === state.day;
   const myDayVoteSeat = state?.votes[clientId];
   const myWolfActionSeat = me && isWolfRole(me.role)
     ? isRecruitWolfNight
