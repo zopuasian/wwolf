@@ -238,9 +238,83 @@ async function main() {
     assert(check?.isWolf && check.targetRole === "Werewolf", "Seer result was missing or incorrect.");
     logStep("seer receives alignment and wolf role result");
 
+    await patchState(supabase, code, (state) => {
+      const forced = forceRoles(state, clientIds);
+      return {
+        ...forced,
+        day: 2,
+        phase: "NIGHT_WOLF_ACTION",
+        players: forced.players.map((player, index) => {
+          if (index === 1) return { ...player, role: "BigBadWolf", alignment: "wolf", alive: true };
+          if (index === 2) return { ...player, role: "Werewolf", alignment: "wolf", alive: false };
+          return player;
+        }),
+        roleState: {
+          ...forced.roleState,
+          bigBadWolfRecruitNight: 2,
+        },
+        nightActions: {
+          wolfVotes: {},
+          wolfTargets: [],
+          bigBadWolfRecruitVotes: {},
+          seerChecks: {},
+        },
+      };
+    });
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "NIGHT_ACTION",
+      clientId: clientIds[1],
+      targetSeat: 0,
+    });
+    const recruitedState = (await getDbRoom(supabase, code)).state;
+    assert(recruitedState.players[0].role === "Werewolf", "Big Bad Wolf recruitment did not convert the target.");
+    assert(recruitedState.players[0].alignment === "wolf", "Big Bad Wolf recruitment did not set wolf alignment.");
+    assert(typeof recruitedState.nightActions.wolfTarget !== "number", "Big Bad Wolf recruitment night also created a wolf bite target.");
+    logStep("big bad wolf recruits during wolf phase without biting");
+
+    await patchState(supabase, code, (state) => ({
+      ...forceRoles(state, clientIds),
+      day: 2,
+      phase: "DAY_RESOLVE",
+      phaseStartedAt: Date.now() - 6_000,
+      phaseDeadlineAt: Date.now() - 1_000,
+      nightActions: {
+        wolfVotes: {},
+        wolfTargets: [],
+        bigBadWolfRecruitVotes: {},
+        seerChecks: {},
+      },
+    }));
+    const autoNightState = (await getRoom(baseUrl, code, clientIds[0])).state;
+    assert(autoNightState.day === 3, "Day resolve did not automatically advance to the next night.");
+    assert(autoNightState.phase === "NIGHT_GUARD_ACTION", `Expected next night to start at guard phase, got ${autoNightState.phase}.`);
+    assert(autoNightState.phaseDeadlineAt > Date.now(), "Auto-started night phase did not receive a deadline.");
+    logStep("vote result auto-advances to the next night");
+
+    await patchState(supabase, code, (state) => ({
+      ...forceRoles(state, clientIds),
+      day: 4,
+      phase: "NIGHT_WOLF_ACTION",
+      phaseStartedAt: Date.now() - 20_000,
+      phaseDeadlineAt: Date.now() - 1_000,
+      nightActions: {
+        wolfVotes: {},
+        wolfTargets: [],
+        bigBadWolfRecruitVotes: {},
+        seerChecks: {},
+      },
+    }));
+    const autoWolfState = (await getRoom(baseUrl, code, clientIds[1])).state;
+    assert(autoWolfState.phase === "NIGHT_WITCH_ACTION", `Wolf timeout did not advance to Witch phase, got ${autoWolfState.phase}.`);
+    assert(typeof autoWolfState.nightActions.wolfTarget !== "number", "Wolf timeout created a bite target without votes.");
+    assert(autoWolfState.phaseDeadlineAt > Date.now(), "Next night phase after wolf timeout did not receive a deadline.");
+    logStep("wolf phase timeout advances without a bite when wolves do not vote");
+
     await patchState(supabase, code, (state) => ({
       ...forceRoles(state, clientIds),
       phase: "DAY_VOTE",
+      phaseStartedAt: Date.now(),
+      phaseDeadlineAt: Date.now() + 15_000,
       votes: Object.fromEntries(clientIds.slice(0, 5).map((id) => [id, 5])),
     }));
     const hunterVote = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {

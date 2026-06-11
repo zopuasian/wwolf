@@ -75,7 +75,8 @@ export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): 
         wolfVotes: {},
         wolfTarget: canSeeNightTarget ? room.state.nightActions.wolfTarget : undefined,
         wolfTargets: room.state.phase === "GAME_END" ? room.state.nightActions.wolfTargets : undefined,
-        bigBadWolfTarget: room.state.phase === "GAME_END" ? room.state.nightActions.bigBadWolfTarget : undefined,
+        bigBadWolfRecruitVotes: {},
+        bigBadWolfRecruitTarget: room.state.phase === "GAME_END" ? room.state.nightActions.bigBadWolfRecruitTarget : undefined,
         witchSave: room.state.phase === "GAME_END" ? room.state.nightActions.witchSave : undefined,
         witchPoison: room.state.phase === "GAME_END" ? room.state.nightActions.witchPoison : undefined,
         seerChecks: viewer?.role === "Seer"

@@ -79,7 +79,8 @@ function createEmptyPlayer(seat: number): Player {
 }
 
 function getPhaseText(room: MultiplayerRoom | null): string {
-  const phase = room?.state?.phase ?? "LOBBY";
+  const state = room?.state;
+  const phase = state?.phase ?? "LOBBY";
   switch (phase) {
     case "LOBBY":
       return "Lobby";
@@ -94,9 +95,10 @@ function getPhaseText(room: MultiplayerRoom | null): string {
     case "NIGHT_GUARD_ACTION":
       return "Guard action";
     case "NIGHT_WOLF_ACTION":
+      if (state?.roleState?.bigBadWolfRecruitNight === state?.day) return "Wolf recruitment";
       return "Wolf action";
     case "NIGHT_BIG_BAD_WOLF_ACTION":
-      return "Big Bad Wolf";
+      return "Wolf recruitment";
     case "NIGHT_WITCH_ACTION":
       return "Witch action";
     case "NIGHT_SEER_ACTION":
@@ -330,7 +332,7 @@ export function OnlineMultiplayerApp() {
   const leftPlayers = useMemo(() => tablePlayers.slice(0, Math.ceil(tablePlayers.length / 2)), [tablePlayers]);
   const rightPlayers = useMemo(() => tablePlayers.slice(Math.ceil(tablePlayers.length / 2)), [tablePlayers]);
   const legacyMe = useMemo(() => (me ? toGamePlayer(me, clientId) : null), [clientId, me]);
-  const isWolfNightChat = phase === "NIGHT_WOLF_ACTION" && !!me && isWolfRole(me.role);
+  const isWolfNightChat = (phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION") && !!me && isWolfRole(me.role);
   const canUseChat = phase === "DAY_DISCUSSION" || phase === "DAY_VOTE" || isWolfNightChat;
   const aliveVoteStatus = useMemo(
     () => state?.players.filter((player) => player.alive).map((player) => ({
@@ -613,7 +615,7 @@ export function OnlineMultiplayerApp() {
     if (phase === "NIGHT_CULT_ACTION") return me.role === "CultLeader" && player.clientId !== me.clientId;
     if (phase === "NIGHT_GUARD_ACTION") return me.role === "Guard" && player.clientId !== me.clientId;
     if (phase === "NIGHT_WOLF_ACTION") return isWolfRole(me.role) && !isWolfRole(player.role);
-    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return me.role === "BigBadWolf" && player.clientId !== me.clientId && !isWolfRole(player.role);
+    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return isWolfRole(me.role) && !isWolfRole(player.role);
     if (phase === "NIGHT_WITCH_ACTION") return me.role === "Witch" && !witchPoisonUsed;
     if (phase === "NIGHT_SEER_ACTION") return me.role === "Seer" && player.clientId !== me.clientId;
     if (phase === "NIGHT_SORCERER_ACTION") return me.role === "Sorcerer" && player.clientId !== me.clientId;
@@ -646,8 +648,14 @@ export function OnlineMultiplayerApp() {
     if (phase === "NIGHT_CUPID_ACTION") return me.role === "Cupid" ? "Choose two players to become lovers." : "Waiting for Cupid.";
     if (phase === "NIGHT_CULT_ACTION") return me.role === "CultLeader" ? "Recruit one player into the cult." : "Waiting for the Cult Leader.";
     if (phase === "NIGHT_GUARD_ACTION") return me.role === "Guard" ? "Choose another player to protect." : "Waiting for the Guard.";
-    if (phase === "NIGHT_WOLF_ACTION") return isWolfRole(me.role) ? "Wolves choose a target." : "Waiting for the wolves.";
-    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return me.role === "BigBadWolf" ? "Choose an adjacent bonus target, or pass." : "Waiting for Big Bad Wolf.";
+    if (phase === "NIGHT_WOLF_ACTION") {
+      const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
+      if (isWolfRole(me.role)) {
+        return isRecruitNight ? "Wolves choose one player to turn into a wolf. No bite tonight." : "Wolves choose a target.";
+      }
+      return isRecruitNight ? "Waiting for the wolves to recruit." : "Waiting for the wolves.";
+    }
+    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return isWolfRole(me.role) ? "Choose one non-wolf player to recruit into the pack." : "Waiting for the wolves to recruit.";
     if (phase === "NIGHT_WITCH_ACTION") {
       if (me.role !== "Witch") return "Waiting for the Witch.";
       const saveText = witchHealUsed ? "heal used" : "heal ready";
@@ -660,7 +668,7 @@ export function OnlineMultiplayerApp() {
     if (phase === "HUNTER_SHOOT") return me.role === "Hunter" && state.pendingHunterShot?.hunterClientId === clientId ? "You died as Hunter. Choose one player to take with you." : "Waiting for the Hunter shot.";
     if (phase === "DAY_DISCUSSION") return isHost ? "Discuss, then start voting when ready." : "Discuss and wait for host to start voting.";
     if (phase === "DAY_VOTE") return state.votes[clientId] !== undefined ? "Vote submitted." : "Vote for one alive player.";
-    if (phase === "DAY_RESOLVE") return isHost ? "Advance to the next night." : "Waiting for host.";
+    if (phase === "DAY_RESOLVE") return "Next night starts automatically.";
     if (phase === "GAME_END") {
       if (state.winner === "wolf") return "Werewolves win.";
       if (state.winner === "tanner") return "Tanner wins.";
@@ -925,11 +933,6 @@ export function OnlineMultiplayerApp() {
                     Force stop vote
                   </button>
                 )}
-                {phase === "DAY_RESOLVE" && isHost && (
-                  <button type="button" onClick={() => sendAction({ type: "NEXT_NIGHT", clientId })} className="wc-mp-primary-btn">
-                    Next night
-                  </button>
-                )}
               </div>
 
               {room.status === "lobby" && (
@@ -1083,16 +1086,6 @@ export function OnlineMultiplayerApp() {
               </div>
             )}
 
-            {phase === "NIGHT_BIG_BAD_WOLF_ACTION" && me?.role === "BigBadWolf" && (
-              <div className="wc-mp-witch-actions">
-                <button type="button" disabled={selectedSeat === null} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: selectedSeat })}>
-                  <Skull size={15} /> Kill selected
-                </button>
-                <button type="button" onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: null })}>
-                  Pass
-                </button>
-              </div>
-            )}
           </section>
 
           <div className="hidden md:flex w-[220px] lg:w-[240px] xl:w-[260px] 2xl:w-[300px] flex-col gap-3 shrink-0 overflow-y-auto overflow-x-visible scrollbar-hide pt-2 pb-2 px-1 -mx-1">

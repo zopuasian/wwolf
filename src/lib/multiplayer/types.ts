@@ -65,7 +65,8 @@ export interface MultiplayerGameState {
     wolfVotes: Record<string, number>;
     wolfTarget?: number;
     wolfTargets?: number[];
-    bigBadWolfTarget?: number;
+    bigBadWolfRecruitVotes?: Record<string, number>;
+    bigBadWolfRecruitTarget?: number;
     witchSave?: boolean;
     witchPoison?: number;
     seerChecks: Record<string, { targetSeat: number; isWolf: boolean; targetRole: Role; day: number }[]>;
@@ -87,6 +88,8 @@ export interface MultiplayerGameState {
     doppelgangerTargets?: Record<string, number>;
     wolfCubRevengePending?: boolean;
     wolfCubRevengeNight?: number;
+    bigBadWolfRecruitPending?: boolean;
+    bigBadWolfRecruitNight?: number;
     diseasedWolvesBlockedNight?: number;
   };
   votes: Record<string, number>;
