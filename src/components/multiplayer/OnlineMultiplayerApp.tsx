@@ -5,9 +5,10 @@ import type { CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, Copy, Crosshair, Drop, Eye, FingerprintSimple, PaperPlaneRight, Shield, SignOut, Skull, Timer, UsersThree } from "@phosphor-icons/react";
+import { CheckCircle, Copy, Crosshair, Drop, Eye, FingerprintSimple, Gear, PaperPlaneRight, Shield, SignOut, Skull, Timer, UsersThree, X } from "@phosphor-icons/react";
 import { DayIcon, NightIcon, VoteIcon, WerewolfIcon } from "@/components/icons/FlatIcons";
 import { GameBackground } from "@/components/game/GameBackground";
+import LoadingMiniGame from "@/components/game/MiniGame/LoadingMiniGame";
 import { PlayerCardCompact } from "@/components/game/PlayerCardCompact";
 import { RoleRevealOverlay } from "@/components/game/RoleRevealOverlay";
 import { buildSimpleAvatarUrl } from "@/lib/avatar-config";
@@ -16,6 +17,7 @@ import { isWolfRole, type Player, type Role } from "@/types/game";
 import { toGamePhase, type MultiplayerAction, type MultiplayerPlayer, type MultiplayerRoom, type MultiplayerSeat } from "@/lib/multiplayer/types";
 import {
   getDefaultMultiplayerRoles,
+  getRoleAlignment,
   MULTIPLAYER_ROLE_LABEL,
   MULTIPLAYER_ROLE_OPTIONS,
   MULTIPLAYER_ROLE_PRESETS,
@@ -251,6 +253,9 @@ export function OnlineMultiplayerApp() {
   const [room, setRoom] = useState<MultiplayerRoom | null>(null);
   const [loading, setLoading] = useState(false);
   const [chatText, setChatText] = useState("");
+  const [roomSettingsOpen, setRoomSettingsOpen] = useState(false);
+  const [endReportOpen, setEndReportOpen] = useState(false);
+  const [previewRole, setPreviewRole] = useState<Role | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [now, setNow] = useState(Date.now());
@@ -260,6 +265,8 @@ export function OnlineMultiplayerApp() {
   const [visibleTestDone, setVisibleTestDone] = useState(false);
   const visibleTestStartedRef = useRef(false);
   const previousIsNightRef = useRef<boolean | null>(null);
+  const messageScrollRef = useRef<HTMLDivElement | null>(null);
+  const endReportAutoOpenRef = useRef("");
 
   useEffect(() => {
     const id = getMultiplayerClientId();
@@ -299,6 +306,7 @@ export function OnlineMultiplayerApp() {
   }, [clientId, room]);
 
   const isHost = !!room && room.hostClientId === clientId;
+  const canEditRoomSettings = !!room && room.status === "lobby" && isHost;
   const state = room?.state ?? null;
   const alivePlayers = state?.players.filter((p) => p.alive) ?? [];
   const phase = state?.phase ?? "LOBBY";
@@ -337,8 +345,33 @@ export function OnlineMultiplayerApp() {
   const leftPlayers = useMemo(() => tablePlayers.slice(0, Math.ceil(tablePlayers.length / 2)), [tablePlayers]);
   const rightPlayers = useMemo(() => tablePlayers.slice(Math.ceil(tablePlayers.length / 2)), [tablePlayers]);
   const legacyMe = useMemo(() => (me ? toGamePlayer(me, clientId) : null), [clientId, me]);
+  const previewRolePlayer = useMemo<Player | null>(() => {
+    if (!previewRole) return null;
+    return {
+      playerId: "role-preview",
+      seat: 0,
+      displayName: roleLabel[previewRole],
+      avatarSeed: `role-preview-${previewRole}`,
+      alive: true,
+      role: previewRole,
+      alignment: getRoleAlignment(previewRole),
+      isHuman: true,
+      agentProfile: {
+        modelRef: { provider: "newapi", model: "role-guide" },
+        persona: {
+          mbti: "",
+          gender: "nonbinary",
+          age: 18,
+          voiceRules: [],
+          basicInfo: "Role guide",
+        },
+      },
+    };
+  }, [previewRole]);
   const isWolfNightChat = (phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION") && !!me && isWolfRole(me.role);
-  const canUseChat = phase === "DAY_DISCUSSION" || phase === "DAY_VOTE" || isWolfNightChat;
+  const canUseLobbyChat = room?.status === "lobby" && !!mySeat;
+  const canUseChat = canUseLobbyChat || phase === "DAY_DISCUSSION" || phase === "DAY_VOTE" || isWolfNightChat;
+  const shouldShowDialogBox = room?.status === "lobby" || phase === "DAY_DISCUSSION" || phase === "DAY_VOTE" || phase === "GAME_END" || isWolfNightChat;
   const aliveVoteStatus = useMemo(
     () => state?.players.filter((player) => player.alive).map((player) => ({
       player,
@@ -350,6 +383,50 @@ export function OnlineMultiplayerApp() {
     () => (state?.messages ?? []).filter((message) => message.isSystem).slice(-4),
     [state?.messages]
   );
+  const visibleChatMessages = useMemo(
+    () => (
+      room?.status === "lobby"
+        ? (room.lobbyMessages ?? [])
+        : (state?.messages ?? []).filter((message) => !message.isSystem)
+    ),
+    [room?.lobbyMessages, room?.status, state?.messages]
+  );
+
+  useEffect(() => {
+    const scrollEl = messageScrollRef.current;
+    if (!scrollEl) return;
+    const frame = window.requestAnimationFrame(() => {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [phase, visibleChatMessages.length]);
+
+  useEffect(() => {
+    if (!roomSettingsOpen || canEditRoomSettings) return;
+    setRoomSettingsOpen(false);
+  }, [canEditRoomSettings, roomSettingsOpen]);
+
+  useEffect(() => {
+    if (!roomSettingsOpen && !endReportOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setRoomSettingsOpen(false);
+      setEndReportOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [endReportOpen, roomSettingsOpen]);
+
+  useEffect(() => {
+    if (phase !== "GAME_END" || !state?.winner || !room?.code) {
+      setEndReportOpen(false);
+      return;
+    }
+    const reportKey = `${room.code}-${room.actionSeq}-${state.winner}`;
+    if (endReportAutoOpenRef.current === reportKey) return;
+    endReportAutoOpenRef.current = reportKey;
+    setEndReportOpen(true);
+  }, [phase, room?.actionSeq, room?.code, state?.winner]);
 
   useEffect(() => {
     const previous = previousIsNightRef.current;
@@ -452,7 +529,7 @@ export function OnlineMultiplayerApp() {
   };
 
   const sendAction = async (action: MultiplayerAction) => {
-    if (!room) return;
+    if (!room) return false;
     try {
       const res = await fetch(`/api/multiplayer/rooms/${encodeURIComponent(room.code)}/action`, {
         method: "POST",
@@ -464,8 +541,10 @@ export function OnlineMultiplayerApp() {
       setRoom(json.room);
       setSelectedSeat(null);
       setSelectedSeats([]);
+      return true;
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Action failed");
+      return false;
     }
   };
 
@@ -481,7 +560,11 @@ export function OnlineMultiplayerApp() {
 
   const saveLobbyRoles = async () => {
     if (!clientId) return;
-    await sendAction({ type: "UPDATE_ROLE_CONFIG", clientId, roles: roleEditorRoles, preset: rolePreset });
+    const saved = await sendAction({ type: "UPDATE_ROLE_CONFIG", clientId, roles: roleEditorRoles, preset: rolePreset });
+    if (saved) {
+      setRoomSettingsOpen(false);
+      toast.success("Room settings saved");
+    }
   };
 
   const leaveRoom = async () => {
@@ -687,6 +770,43 @@ export function OnlineMultiplayerApp() {
   }, [me, phase, state]);
 
   const isRecruitWolfNight = phase === "NIGHT_WOLF_ACTION" && !!state && state.roleState?.bigBadWolfRecruitNight === state.day;
+  const wolfChoiceStatus = useMemo(() => {
+    if (!state || !me || !isWolfRole(me.role) || (phase !== "NIGHT_WOLF_ACTION" && phase !== "NIGHT_BIG_BAD_WOLF_ACTION")) return [];
+    const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
+    const votes = isRecruitNight ? state.nightActions.bigBadWolfRecruitVotes ?? {} : state.nightActions.wolfVotes;
+    return state.players
+      .filter((player) => player.alive && isWolfRole(player.role))
+      .map((wolf) => {
+        const targetSeat = votes[wolf.clientId];
+        const target = typeof targetSeat === "number"
+          ? state.players.find((player) => player.seat === targetSeat) ?? null
+          : null;
+        return {
+          wolf,
+          target,
+          label: target ? `${isRecruitNight ? "Curse" : "Bite"}: ${target.displayName}` : "Choosing...",
+          tone: isRecruitNight ? "curse" : "wolf",
+        };
+      });
+  }, [me, phase, state]);
+  const wolfTargetChoiceChips = useMemo<Record<number, PlayerActionChip[]>>(() => {
+    if (!state || !me || !isWolfRole(me.role) || (phase !== "NIGHT_WOLF_ACTION" && phase !== "NIGHT_BIG_BAD_WOLF_ACTION")) return {};
+    const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
+    const votes = isRecruitNight ? state.nightActions.bigBadWolfRecruitVotes ?? {} : state.nightActions.wolfVotes;
+    const chipsByTarget: Record<number, PlayerActionChip[]> = {};
+    for (const wolf of state.players.filter((player) => player.alive && isWolfRole(player.role))) {
+      const targetSeat = votes[wolf.clientId];
+      if (typeof targetSeat !== "number") continue;
+      chipsByTarget[targetSeat] = [
+        ...(chipsByTarget[targetSeat] ?? []),
+        {
+          label: `${wolf.displayName} ${isRecruitNight ? "curses" : "bites"}`,
+          tone: isRecruitNight ? "curse" : "wolf",
+        },
+      ];
+    }
+    return chipsByTarget;
+  }, [me, phase, state]);
   const myDayVoteSeat = state?.votes[clientId];
   const myWolfActionSeat = me && isWolfRole(me.role)
     ? isRecruitWolfNight
@@ -703,6 +823,99 @@ export function OnlineMultiplayerApp() {
     const player = state?.players.find((candidate) => candidate.seat === seat);
     return player ? player.displayName : `Seat ${seat + 1}`;
   };
+  const winnerLabel = (() => {
+    if (state?.winner === "wolf") return "Werewolves win";
+    if (state?.winner === "tanner") return "Tanner wins";
+    if (state?.winner === "cult") return "Cult wins";
+    if (state?.winner === "village") return "Village wins";
+    return "Game result";
+  })();
+  const finalRoleRows = useMemo(() => (
+    state?.players
+      .slice()
+      .sort((a, b) => a.seat - b.seat)
+      .map((player) => ({
+        player,
+        role: roleLabel[player.role],
+        alignment: player.alignment === "wolf" ? "Wolf team" : player.alignment === "village" ? "Village team" : player.alignment,
+      })) ?? []
+  ), [state?.players]);
+  const gameLogEntries = useMemo(() => {
+    if (!state) return [];
+    const getName = (seat: number | undefined | null) => {
+      if (typeof seat !== "number") return "";
+      const player = state.players.find((candidate) => candidate.seat === seat);
+      return player ? `Seat ${seat + 1}. ${player.displayName}` : `Seat ${seat + 1}`;
+    };
+    const historyDays = [
+      ...Object.keys(state.nightHistory).map(Number),
+      ...Object.keys(state.dayHistory).map(Number),
+      state.day,
+    ].filter((day) => Number.isFinite(day) && day > 0);
+    const maxDay = Math.max(0, ...historyDays);
+    const entries: { id: string; title: string; items: string[] }[] = [];
+
+    for (let day = 1; day <= maxDay; day += 1) {
+      const night = state.nightHistory[day];
+      if (night) {
+        const items: string[] = [];
+        const wolfTargets = night.wolfTargets?.length
+          ? night.wolfTargets
+          : typeof night.wolfTarget === "number"
+            ? [night.wolfTarget]
+            : [];
+        if (wolfTargets.length > 0) items.push(`Wolves targeted ${wolfTargets.map(getName).join(", ")}.`);
+        if (typeof night.guardTarget === "number") items.push(`Guard protected ${getName(night.guardTarget)}.`);
+        if (night.witchSave) items.push("Witch used heal potion.");
+        if (typeof night.witchPoison === "number") items.push(`Witch poisoned ${getName(night.witchPoison)}.`);
+        if (night.deaths.length > 0) {
+          items.push(`Deaths: ${night.deaths.map(getName).join(", ")}.`);
+        } else {
+          items.push("No one died during the night.");
+        }
+        if (night.hunterShot) {
+          items.push(`Hunter ${getName(night.hunterShot.hunterSeat)} shot ${getName(night.hunterShot.targetSeat)}.`);
+        }
+        entries.push({ id: `night-${day}`, title: `Night ${day}`, items });
+      }
+
+      const dayLog = state.dayHistory[day];
+      if (dayLog) {
+        const items: string[] = [];
+        if (dayLog.tied) {
+          items.push("The vote tied. Nobody was executed.");
+        } else if (typeof dayLog.executedSeat === "number") {
+          items.push(`${getName(dayLog.executedSeat)} was executed by vote.`);
+        } else {
+          items.push("No player was executed by vote.");
+        }
+        if (dayLog.hunterShot) {
+          items.push(`Hunter ${getName(dayLog.hunterShot.hunterSeat)} shot ${getName(dayLog.hunterShot.targetSeat)}.`);
+        }
+        entries.push({ id: `day-${day}`, title: `Day ${day}`, items });
+      }
+    }
+
+    const systemMessages = state.messages.filter((message) => message.isSystem);
+    if (systemMessages.length > 0) {
+      entries.push({
+        id: "system",
+        title: "Announcements",
+        items: systemMessages.map((message) => message.content),
+      });
+    }
+
+    const chatMessages = state.messages.filter((message) => !message.isSystem);
+    if (chatMessages.length > 0) {
+      entries.push({
+        id: "chat",
+        title: "Chat transcript",
+        items: chatMessages.map((message) => `${message.visibility === "wolves" ? "[Wolf] " : ""}${message.playerName}: ${message.content}`),
+      });
+    }
+
+    return entries;
+  }, [state]);
   const actionTargets = state?.players.filter((player) => player.alive && canSelectSeat(player)) ?? [];
   const canUseActionConsole = !!state && !!me && (
     (phase === "DAY_VOTE" && me.alive) ||
@@ -953,14 +1166,18 @@ export function OnlineMultiplayerApp() {
               <span className="text-xs uppercase tracking-wider opacity-60">Room</span>
               <span className="font-serif text-lg font-bold">{room.code}</span>
             </div>
-            <div className="wc-topbar__item">
-              <span className="text-xs uppercase tracking-wider opacity-60">Day</span>
-              <span className="font-serif text-lg font-bold">{state?.day ?? 0}</span>
-            </div>
-            <div className="wc-topbar__item">
-              <span className="text-xs uppercase tracking-wider opacity-60">Alive</span>
-              <span className="font-serif text-lg font-bold">{alivePlayers.length}/{currentPlayerTotal || room.playerCount}</span>
-            </div>
+            {room.status !== "lobby" && (
+              <>
+                <div className="wc-topbar__item">
+                  <span className="text-xs uppercase tracking-wider opacity-60">Day</span>
+                  <span className="font-serif text-lg font-bold">{state?.day ?? 0}</span>
+                </div>
+                <div className="wc-topbar__item">
+                  <span className="text-xs uppercase tracking-wider opacity-60">Alive</span>
+                  <span className="font-serif text-lg font-bold">{alivePlayers.length}/{currentPlayerTotal || room.playerCount}</span>
+                </div>
+              </>
+            )}
             <div className="wc-phase-badge">
               {getPhaseIcon(phase, visualIsNight)}
               <span>{getPhaseText(room)}</span>
@@ -979,21 +1196,33 @@ export function OnlineMultiplayerApp() {
                 <span className="font-bold text-[var(--color-gold)]">{roleLabel[me.role]}</span>
               </div>
             )}
+            {canEditRoomSettings && (
+              <button
+                type="button"
+                onClick={() => setRoomSettingsOpen(true)}
+                className="wc-header-icon-btn"
+                aria-haspopup="dialog"
+                aria-expanded={roomSettingsOpen}
+              >
+                <Gear size={15} />
+                <span>Settings</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={copyInvite}
-              className="inline-flex items-center gap-2 rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2.5 py-1 text-xs"
+              className="wc-header-icon-btn"
             >
               <Copy size={15} />
-              Invite
+              <span>Invite</span>
             </button>
             <button
               type="button"
               onClick={leaveRoom}
-              className="inline-flex items-center gap-2 rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2.5 py-1 text-xs text-[var(--text-secondary)]"
+              className="wc-header-icon-btn wc-header-icon-btn--muted"
             >
               <SignOut size={15} />
-              Out
+              <span>Out</span>
             </button>
           </div>
         </header>
@@ -1019,16 +1248,31 @@ export function OnlineMultiplayerApp() {
             ))}
           </div>
 
-          <section className="wc-mp-center flex-1 flex flex-col min-w-0 min-h-0 h-full max-w-[980px] lg:max-w-[1100px] xl:max-w-[1200px] 2xl:max-w-[1280px] overflow-hidden">
+          <section
+            className={[
+              "wc-mp-center flex-1 flex flex-col min-w-0 min-h-0 h-full max-w-[980px] lg:max-w-[1100px] xl:max-w-[1200px] 2xl:max-w-[1280px] overflow-hidden",
+              room.status === "lobby" ? "wc-mp-center--lobby" : "",
+            ].filter(Boolean).join(" ")}
+          >
             <div className="wc-mp-events">
               {latestSystemMessages.map((message) => (
                 <div key={message.id} className="wc-mp-event-chip">{message.content}</div>
               ))}
             </div>
 
-            <div className="wc-mp-action-stage">
+            <div
+              className={[
+                "wc-mp-action-stage",
+                room.status === "lobby" ? "wc-mp-action-stage--lobby" : "",
+                phase === "NIGHT_WITCH_ACTION" && me?.role === "Witch" ? "wc-mp-action-stage--witch" : "",
+              ].filter(Boolean).join(" ")}
+            >
               {canUseActionConsole ? (
-                <div className="wc-mp-action-console" role="group" aria-label={actionConsoleTitle}>
+                <div
+                  className={phase === "NIGHT_WITCH_ACTION" && me.role === "Witch" ? "wc-mp-action-console wc-mp-action-console--witch" : "wc-mp-action-console"}
+                  role="group"
+                  aria-label={actionConsoleTitle}
+                >
                   <div className="wc-mp-action-console__head">
                     <div>
                       <span>{roleLabel[me.role]}</span>
@@ -1066,7 +1310,20 @@ export function OnlineMultiplayerApp() {
                     {phase === "NIGHT_WITCH_ACTION" ? (
                       <>
                         <div className="wc-mp-witch-target">
-                          Wolf target: {wolfTarget ? `Seat ${wolfTarget.seat + 1}. ${wolfTarget.displayName}` : "No target visible"}
+                          <div className="wc-mp-witch-target__label">Wolf attack tonight</div>
+                          {wolfTarget ? (
+                            <div className="wc-mp-witch-target__victim">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={getPlayerAvatar(wolfTarget.clientId)} alt="" />
+                              <div>
+                                <span>Seat {wolfTarget.seat + 1}</span>
+                                <strong>{wolfTarget.displayName}</strong>
+                              </div>
+                              <em>Can be healed</em>
+                            </div>
+                          ) : (
+                            <div className="wc-mp-witch-target__empty">No wolf target is visible tonight.</div>
+                          )}
                           <div className="wc-mp-mini-status">
                             <span className={witchHealUsed ? "is-used" : ""}>Heal {witchHealUsed ? "used" : "ready"}</span>
                             <span className={witchPoisonUsed ? "is-used" : ""}>Poison {witchPoisonUsed ? "used" : "ready"}</span>
@@ -1078,7 +1335,10 @@ export function OnlineMultiplayerApp() {
                               <button
                                 key={player.clientId}
                                 type="button"
-                                className={selectedSeat === player.seat ? "is-selected" : ""}
+                                className={[
+                                  selectedSeat === player.seat ? "is-selected" : "",
+                                  wolfTarget?.seat === player.seat ? "is-wolf-target" : "",
+                                ].filter(Boolean).join(" ")}
                                 onClick={() => {
                                   setSelectedSeats([]);
                                   setSelectedSeat(player.seat);
@@ -1088,13 +1348,14 @@ export function OnlineMultiplayerApp() {
                                 <img src={getPlayerAvatar(player.clientId)} alt="" />
                                 <span>Seat {player.seat + 1}</span>
                                 <strong>{player.displayName}</strong>
+                                {wolfTarget?.seat === player.seat && <em data-tone="wolf">Attacked tonight</em>}
                               </button>
                             ))}
                           </div>
                         )}
                         <div className="wc-mp-action-console__actions">
                           <button type="button" disabled={witchHealUsed || !wolfTarget} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: null, witchAction: "save" })}>
-                            <Shield size={15} /> Save target
+                            <Shield size={15} /> Heal {wolfTarget ? wolfTarget.displayName : "target"}
                           </button>
                           <button type="button" disabled={witchPoisonUsed || selectedSeat === null} onClick={() => sendAction({ type: "NIGHT_ACTION", clientId, targetSeat: selectedSeat, witchAction: "poison" })}>
                             <Skull size={15} /> Poison {selectedSeat !== null ? getPlayerNameBySeat(selectedSeat) : "selected"}
@@ -1106,11 +1367,27 @@ export function OnlineMultiplayerApp() {
                       </>
                     ) : (
                       <>
+                        {wolfChoiceStatus.length > 0 && (
+                          <div className="wc-mp-wolf-choice-board">
+                            <div className="wc-mp-wolf-choice-board__title">
+                              {isRecruitWolfNight ? "Pack curse choices" : "Pack bite choices"}
+                            </div>
+                            <div className="wc-mp-wolf-choice-board__list">
+                              {wolfChoiceStatus.map(({ wolf, target, label, tone }) => (
+                                <span key={wolf.clientId} className={target ? "is-chosen" : ""} data-tone={tone}>
+                                  <strong>{wolf.displayName}</strong>
+                                  <em>{label}</em>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         {actionTargets.length > 0 && !isActionSubmitted && (
                           <div className="wc-mp-action-target-grid">
                             {actionTargets.map((player) => {
                               const selected = phase === "NIGHT_CUPID_ACTION" ? selectedSeats.includes(player.seat) : selectedSeat === player.seat;
                               const chip = playerActionChips[player.seat];
+                              const targetChoiceChips = wolfTargetChoiceChips[player.seat] ?? [];
                               return (
                                 <button
                                   key={player.clientId}
@@ -1134,6 +1411,9 @@ export function OnlineMultiplayerApp() {
                                   <span>Seat {player.seat + 1}</span>
                                   <strong>{player.displayName}</strong>
                                   {chip && <em data-tone={chip.tone ?? "vote"}>{chip.label}</em>}
+                                  {targetChoiceChips.map((targetChip) => (
+                                    <em key={targetChip.label} data-tone={targetChip.tone ?? "wolf"}>{targetChip.label}</em>
+                                  ))}
                                 </button>
                               );
                             })}
@@ -1182,6 +1462,11 @@ export function OnlineMultiplayerApp() {
                   </div>
                   <div className="wc-mp-phase-title">{getPhaseText(room)}</div>
                   <div className="wc-mp-phase-subtitle">{actionHint}</div>
+                  {room.status === "lobby" && (
+                    <div className="wc-mp-lobby-mini-game">
+                      <LoadingMiniGame />
+                    </div>
+                  )}
                   {state?.phaseDeadlineAt && (
                     <div className="wc-mp-countdown" style={{ "--timer-progress": `${timerProgress}%` } as CSSProperties}>
                       <Timer size={15} />
@@ -1212,6 +1497,16 @@ export function OnlineMultiplayerApp() {
                     Force stop vote
                   </button>
                 )}
+                {phase === "GAME_END" && isHost && (
+                  <button type="button" onClick={() => sendAction({ type: "RESTART_LOBBY", clientId })} className="wc-mp-primary-btn">
+                    Restart lobby
+                  </button>
+                )}
+                {phase === "GAME_END" && (
+                  <button type="button" onClick={() => setEndReportOpen(true)} className="wc-mp-primary-btn wc-mp-primary-btn--ghost">
+                    Game report
+                  </button>
+                )}
               </div>
 
               {room.status === "lobby" && (
@@ -1219,32 +1514,28 @@ export function OnlineMultiplayerApp() {
                   <div className="wc-mp-lobby-roles__summary">
                     <UsersThree size={15} />
                     <span>{room.seats.length}/{room.playerCount} seated</span>
-                    <span>{isHost ? "Host can adjust roles before starting." : "Waiting for host role setup."}</span>
+                    <span>{isHost ? "Use Settings in the header to adjust roles." : "Waiting for host role setup."}</span>
                   </div>
-                  {isHost ? (
-                    <RoleEditor
-                      roles={roleEditorRoles}
-                      preset={rolePreset}
-                      compact
-                      onPresetChange={updateLobbyPreset}
-                      onRoleChange={updateLobbyRole}
-                      onApply={() => void saveLobbyRoles()}
-                    />
-                  ) : (
-                    <div className="wc-role-editor wc-role-editor--compact">
-                      <div className="wc-role-editor__head">
-                        <div>
-                          <span>Role setup</span>
-                          <strong>{room.roleConfig?.length ?? Math.max(MIN_PLAYERS_TO_START, room.seats.length)} players</strong>
-                        </div>
-                      </div>
-                      <div className="wc-role-editor__chips">
-                        {(room.roleConfig ?? roleEditorRoles).map((role, index) => (
-                          <span key={`${role}-${index}`}>{roleLabel[role]}</span>
-                        ))}
+                  <div className="wc-role-editor wc-role-editor--compact wc-role-editor--preview">
+                    <div className="wc-role-editor__head">
+                      <div>
+                        <span>Role setup</span>
+                        <strong>{room.roleConfig?.length ?? Math.max(MIN_PLAYERS_TO_START, room.seats.length)} players</strong>
                       </div>
                     </div>
-                  )}
+                    <div className="wc-role-editor__chips">
+                      {(room.roleConfig ?? roleEditorRoles).map((role, index) => (
+                        <button
+                          key={`${role}-${index}`}
+                          type="button"
+                          onClick={() => setPreviewRole(role)}
+                          aria-label={`Read ${roleLabel[role]} role guide`}
+                        >
+                          {roleLabel[role]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1272,49 +1563,56 @@ export function OnlineMultiplayerApp() {
               )}
             </div>
 
-            <div className="wc-mp-dialog-box">
-              <div className="wc-mp-dialog-title">
-                {isWolfNightChat ? "Wolf night chat" : visualIsNight ? "Night log" : "Table chat"}
-              </div>
-              <div className="wc-mp-message-scroll">
-                {(state?.messages ?? []).filter((message) => !message.isSystem).map((message) => (
-                  <div
-                    key={message.id}
-                    className={[
-                      "wc-mp-chat-line",
-                      message.clientId === clientId ? "wc-mp-chat-line--mine" : "",
-                      message.visibility === "wolves" ? "wc-mp-chat-line--wolves" : "",
-                    ].join(" ")}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={getPlayerAvatar(message.clientId)} alt="" />
-                    <div>
-                      <div className="wc-mp-chat-meta">
-                        {message.playerName}
-                        {message.visibility === "wolves" && <span>Wolf only</span>}
-                      </div>
-                      <div className="wc-speaker-bubble"><div className="wc-dialog-text">{message.content}</div></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {canUseChat && (
-                <div className="wc-mp-chat-input">
-                  <input
-                    value={chatText}
-                    onChange={(e) => setChatText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        void submitChat();
-                      }
-                    }}
-                    placeholder={isWolfNightChat ? "Wolf chat. Villagers cannot see this." : "Say something"}
-                  />
-                  <button type="button" onClick={submitChat}><PaperPlaneRight size={16} /></button>
+            {shouldShowDialogBox && (
+              <div className={room.status === "lobby" ? "wc-mp-dialog-box wc-mp-dialog-box--lobby" : "wc-mp-dialog-box"}>
+                <div className="wc-mp-dialog-title">
+                  {room.status === "lobby" ? "Lobby chat" : isWolfNightChat ? "Wolf night chat" : visualIsNight ? "Night log" : "Table chat"}
                 </div>
-              )}
-            </div>
+                <div ref={messageScrollRef} className="wc-mp-message-scroll">
+                  {visibleChatMessages.length === 0 && (
+                    <div className="wc-mp-chat-empty">
+                      {room.status === "lobby" ? "Say hi while everyone gathers." : "No messages yet."}
+                    </div>
+                  )}
+                  {visibleChatMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={[
+                        "wc-mp-chat-line",
+                        message.clientId === clientId ? "wc-mp-chat-line--mine" : "",
+                        message.visibility === "wolves" ? "wc-mp-chat-line--wolves" : "",
+                      ].join(" ")}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={getPlayerAvatar(message.clientId)} alt="" />
+                      <div>
+                        <div className="wc-mp-chat-meta">
+                          {message.playerName}
+                          {message.visibility === "wolves" && <span>Wolf only</span>}
+                        </div>
+                        <div className="wc-speaker-bubble"><div className="wc-dialog-text">{message.content}</div></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {canUseChat && (
+                  <div className="wc-mp-chat-input">
+                    <input
+                      value={chatText}
+                      onChange={(e) => setChatText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          void submitChat();
+                        }
+                      }}
+                      placeholder={room.status === "lobby" ? "Chat while waiting" : isWolfNightChat ? "Wolf chat. Villagers cannot see this." : "Say something"}
+                    />
+                    <button type="button" onClick={submitChat}><PaperPlaneRight size={16} /></button>
+                  </div>
+                )}
+              </div>
+            )}
 
           </section>
 
@@ -1339,12 +1637,146 @@ export function OnlineMultiplayerApp() {
           </div>
         </div>
       </div>
+      <AnimatePresence>
+        {roomSettingsOpen && canEditRoomSettings && (
+          <motion.div
+            className="wc-room-settings-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="room-settings-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setRoomSettingsOpen(false);
+            }}
+          >
+            <motion.div
+              className="wc-room-settings-modal__panel"
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <div className="wc-room-settings-modal__head">
+                <div>
+                  <span>Room settings</span>
+                  <strong id="room-settings-title">Role setup before start</strong>
+                  <p>{room.seats.length}/{room.playerCount} seated. Changes apply to this room only.</p>
+                </div>
+                <button type="button" onClick={() => setRoomSettingsOpen(false)} aria-label="Close room settings">
+                  <X size={17} />
+                </button>
+              </div>
+              <div className="wc-room-settings-modal__body">
+                <RoleEditor
+                  roles={roleEditorRoles}
+                  preset={rolePreset}
+                  onPresetChange={updateLobbyPreset}
+                  onRoleChange={updateLobbyRole}
+                  onApply={() => void saveLobbyRoles()}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {endReportOpen && phase === "GAME_END" && state && (
+          <motion.div
+            className="wc-end-report-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="end-report-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setEndReportOpen(false);
+            }}
+          >
+            <motion.div
+              className="wc-end-report-modal__panel"
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <div className="wc-end-report-modal__head">
+                <div>
+                  <span>Game report</span>
+                  <strong id="end-report-title">{winnerLabel}</strong>
+                  <p>Room {room.code} · Day {state.day} · {state.players.filter((player) => player.alive).length}/{state.players.length} alive</p>
+                </div>
+                <button type="button" onClick={() => setEndReportOpen(false)} aria-label="Close game report">
+                  <X size={17} />
+                </button>
+              </div>
+
+              <div className="wc-end-report-modal__body">
+                <section className="wc-end-report-section">
+                  <div className="wc-end-report-section__title">
+                    <span>Role results</span>
+                    <strong>All identities revealed</strong>
+                  </div>
+                  <div className="wc-end-role-grid">
+                    {finalRoleRows.map(({ player, role, alignment }) => (
+                      <div key={player.clientId} className="wc-end-role-card" data-alignment={player.alignment}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={getPlayerAvatar(player.clientId)} alt="" />
+                        <div>
+                          <span>Seat {player.seat + 1}</span>
+                          <strong>{player.displayName}</strong>
+                          <em>{role} · {alignment}</em>
+                        </div>
+                        <b>{player.alive ? "Alive" : "Dead"}</b>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="wc-end-report-section">
+                  <div className="wc-end-report-section__title">
+                    <span>Game log</span>
+                    <strong>What happened this game</strong>
+                  </div>
+                  <div className="wc-end-log-list">
+                    {gameLogEntries.length > 0 ? gameLogEntries.map((entry) => (
+                      <article key={entry.id} className="wc-end-log-entry">
+                        <h4>{entry.title}</h4>
+                        <ul>
+                          {entry.items.map((item, index) => (
+                            <li key={`${entry.id}-${index}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </article>
+                    )) : (
+                      <div className="wc-end-log-empty">No timeline was recorded for this game.</div>
+                    )}
+                  </div>
+                </section>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {legacyMe && (
         <RoleRevealOverlay
           open={phase === "ROLE_REVEAL" && !state?.roleAcks[clientId]}
           player={legacyMe}
           phase={toGamePhase(phase)}
           onContinue={() => sendAction({ type: "ACK_ROLE", clientId })}
+        />
+      )}
+      {previewRolePlayer && (
+        <RoleRevealOverlay
+          open={!!previewRole}
+          player={previewRolePlayer}
+          phase="NIGHT_START"
+          mode="preview"
+          onContinue={() => setPreviewRole(null)}
         />
       )}
       <AnimatePresence>

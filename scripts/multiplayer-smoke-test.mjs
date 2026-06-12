@@ -207,14 +207,10 @@ async function main() {
       targetSeat: null,
       witchAction: "save",
     });
-    await patchState(supabase, code, (state) => ({
-      ...state,
-      phase: "NIGHT_WITCH_ACTION",
-      nightActions: {
-        ...state.nightActions,
-        wolfTarget: 5,
-      },
-    }));
+    const afterWitchSave = await getRoom(baseUrl, code, clientIds[3]);
+    assert(afterWitchSave.state.phase === "NIGHT_WITCH_ACTION", "Witch phase ended after using only heal.");
+    assert(afterWitchSave.state.roleAbilities.witchHealUsed === true, "Witch heal was not marked used.");
+    assert(afterWitchSave.state.roleAbilities.witchPoisonUsed === false, "Witch poison was marked used before poison action.");
     const secondHeal = await request(
       baseUrl,
       `/api/multiplayer/rooms/${code}/action`,
@@ -222,7 +218,16 @@ async function main() {
       { allowFailure: true }
     );
     assert(secondHeal.res.status === 400, "Witch second heal was accepted.");
-    logStep("witch potions are one-use");
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "NIGHT_ACTION",
+      clientId: clientIds[3],
+      targetSeat: 1,
+      witchAction: "poison",
+    });
+    const afterWitchPoison = await getRoom(baseUrl, code, clientIds[3]);
+    assert(afterWitchPoison.state.phase === "NIGHT_SEER_ACTION", "Witch phase did not end after both potions were used.");
+    assert(afterWitchPoison.state.roleAbilities.witchPoisonUsed === true, "Witch poison was not marked used.");
+    logStep("witch can use both potions in one night and potions are one-use");
 
     await patchState(supabase, code, (state) => ({
       ...forceRoles(state, clientIds),
@@ -324,6 +329,23 @@ async function main() {
     });
     assert(hunterVote.json.room.state.phase === "HUNTER_SHOOT", "Hunter did not get a shot after death.");
     logStep("hunter gets a shot after dying");
+
+    await patchState(supabase, code, (state) => ({
+      ...forceRoles(state, clientIds),
+      phase: "GAME_END",
+      winner: "wolf",
+    }));
+    const endedView = await getRoom(baseUrl, code, clientIds[0]);
+    assert(endedView.state.players.some((player) => player.role === "Werewolf"), "Game end view did not reveal wolf roles.");
+    assert(Object.keys(endedView.state.dayHistory).length > 0 || Object.keys(endedView.state.nightHistory).length > 0, "Game end view did not include game history.");
+    const restarted = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "RESTART_LOBBY",
+      clientId: clientIds[0],
+    });
+    assert(restarted.json.room.status === "lobby", "Restart did not return room to lobby.");
+    assert(restarted.json.room.state === null, "Restart did not clear game state.");
+    assert(restarted.json.room.seats.length === TEST_PLAYERS.length, "Restart did not keep seated players.");
+    logStep("game end reveals roles and host can restart the same room back to lobby");
 
     console.log("\nMultiplayer smoke test passed.");
   } finally {

@@ -21,6 +21,8 @@ const MAX_ROOM_PLAYERS = 12;
 export const DISCUSSION_DURATION_MS = 60_000;
 export const VOTE_DURATION_MS = 15_000;
 export const NIGHT_ACTION_DURATION_MS = 15_000;
+export const WOLF_ACTION_DURATION_MS = 60_000;
+export const WITCH_ACTION_DURATION_MS = 30_000;
 export const DAY_RESOLVE_DURATION_MS = 5_000;
 
 export function normalizeRoomCode(code: string): string {
@@ -128,7 +130,7 @@ function nightPhasePrompt(state: MultiplayerGameState): string {
 
 function enterNightPhase(state: MultiplayerGameState, phase: MultiplayerGameState["phase"]): MultiplayerGameState {
   const next = isTimedNightPhase(phase)
-    ? withPhaseTimer({ ...state, phase }, NIGHT_ACTION_DURATION_MS)
+    ? withPhaseTimer({ ...state, phase }, getNightPhaseDurationMs(phase))
     : clearPhaseTimer({ ...state, phase });
   const prompt = nightPhasePrompt(next);
   return prompt ? addSystemMessage(next, prompt) : next;
@@ -136,6 +138,12 @@ function enterNightPhase(state: MultiplayerGameState, phase: MultiplayerGameStat
 
 function isTimedNightPhase(phase: MultiplayerGameState["phase"]): boolean {
   return phase.startsWith("NIGHT_") && phase !== "NIGHT_RESOLVE";
+}
+
+function getNightPhaseDurationMs(phase: MultiplayerGameState["phase"]): number {
+  if (phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION") return WOLF_ACTION_DURATION_MS;
+  if (phase === "NIGHT_WITCH_ACTION") return WITCH_ACTION_DURATION_MS;
+  return NIGHT_ACTION_DURATION_MS;
 }
 
 function withPhaseTimer(state: MultiplayerGameState, durationMs?: number): MultiplayerGameState {
@@ -292,7 +300,7 @@ function nextNight(state: MultiplayerGameState): MultiplayerGameState {
       piChecks: state.nightActions.piChecks ?? {},
     },
   };
-  const next = isTimedNightPhase(phase) ? withPhaseTimer(nextState, NIGHT_ACTION_DURATION_MS) : clearPhaseTimer(nextState);
+  const next = isTimedNightPhase(phase) ? withPhaseTimer(nextState, getNightPhaseDurationMs(phase)) : clearPhaseTimer(nextState);
   return addSystemMessages(next, [`Night ${next.day}. Close your eyes.`, nightPhasePrompt(next)]);
 }
 
@@ -546,6 +554,12 @@ function requirePlayer(state: MultiplayerGameState, clientId: string): Multiplay
   return player;
 }
 
+function requireSeat(room: MultiplayerRoom, clientId: string): MultiplayerSeat {
+  const seat = room.seats.find((item) => item.clientId === clientId);
+  if (!seat) throw new Error("You are not seated in this room.");
+  return seat;
+}
+
 function requireAliveTarget(state: MultiplayerGameState, targetSeat: number | null): MultiplayerPlayer {
   if (targetSeat === null) throw new Error("Invalid target.");
   const target = state.players.find((p) => p.seat === targetSeat && p.alive);
@@ -729,6 +743,7 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
       status: "playing",
       roleConfig: roles,
       state: clearPhaseTimer(createInitialMultiplayerState(reindexSeats(room.seats), roles)),
+      lobbyMessages: [],
       actionSeq: room.actionSeq + 1,
     };
   }
@@ -743,6 +758,49 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
       ...room,
       roleConfig: roles,
       rolePreset: action.preset ?? room.rolePreset ?? "classic",
+      actionSeq: room.actionSeq + 1,
+    };
+  }
+
+  if (action.type === "RESTART_LOBBY") {
+    requireHost(room, action.clientId);
+    if (room.status !== "ended" && room.state?.phase !== "GAME_END") {
+      throw new Error("Can only restart after the game ends.");
+    }
+    const seats = reindexSeats(room.seats);
+    const roles = normalizeRoleConfig(room.roleConfig, Math.max(MIN_PLAYERS_TO_START, seats.length), room.rolePreset);
+    return {
+      ...room,
+      status: "lobby",
+      seats,
+      state: null,
+      lobbyMessages: [],
+      roleConfig: roles,
+      hostClientId: seats.some((seat) => seat.clientId === room.hostClientId)
+        ? room.hostClientId
+        : (seats[0]?.clientId ?? room.hostClientId),
+      actionSeq: room.actionSeq + 1,
+    };
+  }
+
+  if (action.type === "CHAT" && room.status === "lobby") {
+    const seat = requireSeat(room, action.clientId);
+    const content = action.content.trim().slice(0, 800);
+    if (!content) return room;
+    const message: MultiplayerChatMessage = {
+      id: generateUUID(),
+      clientId: action.clientId,
+      seat: seat.seat,
+      playerName: seat.displayName,
+      content,
+      timestamp: Date.now(),
+      day: 0,
+      phase: "LOBBY",
+      visibility: "public",
+    };
+    return {
+      ...room,
+      lobbyMessages: [...(room.lobbyMessages ?? []), message].slice(-80),
       actionSeq: room.actionSeq + 1,
     };
   }
@@ -934,6 +992,7 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
       if (player.role !== "Witch") throw new Error("Only the Witch can act now.");
       const nextAbilities = { ...state.roleAbilities };
       const nextNightActions = { ...state.nightActions };
+      let shouldEndWitchPhase = action.witchAction === "pass";
 
       if (action.witchAction === "save") {
         if (nextAbilities.witchHealUsed) throw new Error("The healing potion has already been used.");
@@ -947,18 +1006,28 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
         nextAbilities.witchPoisonUsed = true;
         nextNightActions.witchPoison = target.seat;
       } else if (action.witchAction === "pass") {
-        nextNightActions.witchSave = false;
+        if (nextNightActions.witchSave !== true) {
+          nextNightActions.witchSave = false;
+        }
       } else {
         throw new Error("Choose save, poison, or pass.");
       }
 
+      const hasHealOption = !nextAbilities.witchHealUsed && typeof state.nightActions.wolfTarget === "number";
+      const hasPoisonOption = !nextAbilities.witchPoisonUsed;
+      shouldEndWitchPhase = shouldEndWitchPhase || (!hasHealOption && !hasPoisonOption);
+
+      const nextState = {
+        ...state,
+        roleAbilities: nextAbilities,
+        nightActions: nextNightActions,
+      };
+
       return {
         ...room,
-        state: maybeSkipNightPhase(enterNightPhase({
-          ...state,
-          roleAbilities: nextAbilities,
-          nightActions: nextNightActions,
-        }, "NIGHT_SEER_ACTION")),
+        state: shouldEndWitchPhase
+          ? maybeSkipNightPhase(enterNightPhase(nextState, "NIGHT_SEER_ACTION"))
+          : nextState,
         actionSeq: room.actionSeq + 1,
       };
     }

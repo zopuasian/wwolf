@@ -18,6 +18,8 @@ type CatchEffect = {
 
 const CANVAS_WIDTH = 300;
 const CANVAS_HEIGHT = 170;
+const MAX_FRAME_DELTA_MS = 50;
+const BACKGROUND_GAP_RESET_MS = 180;
 
 const COLOR_GOLD = "#c5a059";
 const COLOR_GOLD_SOFT = "rgba(197, 160, 89, 0.35)";
@@ -164,11 +166,41 @@ const LoadingMiniGame = () => {
       ctx.restore();
     };
 
+    const resetAnimationClock = (nextTime = performance.now()) => {
+      lastTime = nextTime;
+      spawnAccumulator = 0;
+      itemsRef.current = [];
+      effectsRef.current = [];
+      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      drawPaddle();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        resetAnimationClock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     const update = (currentTime: number) => {
       if (!isActive) return;
 
+      if (document.visibilityState === "hidden") {
+        lastTime = currentTime;
+        spawnAccumulator = 0;
+        frameRef.current = requestAnimationFrame(update);
+        return;
+      }
+
       // Calculate delta time and time scale (based on 120Hz)
-      const deltaTime = currentTime - lastTime;
+      const rawDeltaTime = currentTime - lastTime;
+      if (rawDeltaTime > BACKGROUND_GAP_RESET_MS) {
+        resetAnimationClock(currentTime);
+        frameRef.current = requestAnimationFrame(update);
+        return;
+      }
+      const deltaTime = Math.min(rawDeltaTime, MAX_FRAME_DELTA_MS);
       lastTime = currentTime;
       const timeScale = deltaTime / TARGET_FRAME_TIME;
 
@@ -252,6 +284,8 @@ const LoadingMiniGame = () => {
     return () => {
       isActive = false;
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
     };
   }, []);
 

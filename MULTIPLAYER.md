@@ -89,7 +89,7 @@ Rules for setup:
 
 ### Night
 
-Night actions run in 15-second phases. The current player's available action appears in a centered action console.
+Most night actions run in 15-second phases. Wolf phases last 60 seconds, and Witch phases last 30 seconds. The current player's available action appears in a centered action console.
 
 The action console contains:
 
@@ -141,7 +141,7 @@ The online reducer supports classic and expanded Werewolf roles. Important curre
 - Villager has no night action.
 - Werewolves choose the night bite together.
 - Seer investigates one player and receives a result.
-- Witch sees who was attacked and can heal once and poison once.
+- Witch sees who was attacked and can heal once and poison once. Both potions can be used in the same night if both are still available.
 - Guard can protect a player.
 - Hunter can shoot when eliminated.
 - Idiot/Prince-style survival reveal roles can prevent a normal vote death when their rule applies.
@@ -167,9 +167,11 @@ This keeps the night flow compact and avoids making players wait through an extr
 Current phase timers:
 
 ```text
-Night phase: 15s
-Discussion:  60s
-Vote:        15s
+Most night phases: 15s
+Wolf phase:        60s
+Witch phase:       30s
+Discussion:        60s
+Vote:              15s
 ```
 
 Timed phases auto-advance when the server resolves the room state. Host force-stop controls are still available for discussion and voting.

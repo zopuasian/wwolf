@@ -78,7 +78,9 @@ The project keeps the original Wolfcha atmosphere: parchment lobby, red seal ent
 
 ### 4. Day, Night, Chat, And Timers
 
-- Night phases last 15 seconds.
+- Most night phases last 15 seconds.
+- Wolf phases last 60 seconds.
+- Witch phases last 30 seconds.
 - Day discussion lasts 60 seconds.
 - Voting lasts 15 seconds.
 - Day resolution advances automatically to the next night.
@@ -92,7 +94,7 @@ Wolfcha includes classic and advanced Werewolf roles, including Villager, Werewo
 
 Important rules implemented in the online version:
 
-- Witch heal and poison are each limited to one use.
+- Witch heal and poison are each limited to one use, but both can be used in the same night.
 - Seer receives an investigation result.
 - Hunter can shoot when eliminated.
 - Big Bad Wolf has been customized: if any wolf dies and the Big Bad Wolf is still alive, the next wolf night becomes a recruit night. Wolves choose one non-wolf to join the wolf team, and they cannot bite on that night.

@@ -105,6 +105,7 @@ export interface MultiplayerRoom {
   status: MultiplayerRoomStatus;
   seats: MultiplayerSeat[];
   state: MultiplayerGameState | null;
+  lobbyMessages?: MultiplayerChatMessage[];
   roleConfig?: Role[];
   rolePreset?: MultiplayerRolePreset;
   actionSeq: number;
@@ -122,6 +123,7 @@ export type MultiplayerAction =
   | { type: "START_VOTE"; clientId: string }
   | { type: "END_VOTE"; clientId: string }
   | { type: "VOTE"; clientId: string; targetSeat: number }
+  | { type: "RESTART_LOBBY"; clientId: string }
   | { type: "NEXT_NIGHT"; clientId: string };
 
 export function toGamePhase(phase: MultiplayerPhase): Phase {

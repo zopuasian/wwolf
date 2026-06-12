@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         status: "lobby",
         seats: [seat],
         state: null,
+        lobbyMessages: [],
         roleConfig: roleConfig.length ? roleConfig : getDefaultMultiplayerRoles(playerCount, rolePreset),
         rolePreset,
         actionSeq: 0,

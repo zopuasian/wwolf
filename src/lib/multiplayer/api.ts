@@ -23,6 +23,9 @@ export function dbRoomToRoom(row: DbRoom): MultiplayerRoom {
       : null;
   const rolePreset = typeof stateObject?.rolePreset === "string" ? stateObject.rolePreset as MultiplayerRolePreset : "classic";
   const statePlayers = Array.isArray(stateObject?.players) ? stateObject.players : null;
+  const lobbyMessages = Array.isArray(stateObject?.lobbyMessages)
+    ? stateObject.lobbyMessages as MultiplayerRoom["lobbyMessages"]
+    : [];
   const storedPlayerCount = typeof stateObject?.playerCount === "number" ? stateObject.playerCount : null;
   const playerCount = statePlayers?.length ?? storedPlayerCount ?? row.player_count;
   return {
@@ -32,6 +35,7 @@ export function dbRoomToRoom(row: DbRoom): MultiplayerRoom {
     status: row.status,
     seats: Array.isArray(row.seats) ? (row.seats as unknown as MultiplayerSeat[]) : [],
     state: stateObject && "phase" in stateObject ? (row.state as unknown as MultiplayerRoom["state"]) : null,
+    lobbyMessages,
     roleConfig: normalizeRoleConfig(stateObject?.roleConfig, playerCount, rolePreset),
     rolePreset,
     actionSeq: row.action_seq,
@@ -49,6 +53,7 @@ export function roomToDbPatch(room: MultiplayerRoom) {
     seats: room.seats as unknown as Json,
     state: (room.state ?? {
       playerCount: room.playerCount,
+      lobbyMessages: room.lobbyMessages ?? [],
       roleConfig: room.roleConfig ?? getDefaultMultiplayerRoles(room.playerCount, room.rolePreset),
       rolePreset: room.rolePreset ?? "classic",
     }) as unknown as Json,
