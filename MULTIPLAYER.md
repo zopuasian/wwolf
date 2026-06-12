@@ -2,7 +2,7 @@
 
 Wolfcha now runs as an online human-vs-human Werewolf game on the root route `/`.
 
-The multiplayer build removes AI seats from the main experience. Every active seat belongs to a real player, and the server only returns the information each player is allowed to know.
+The multiplayer build uses real-player seats by default. Hosts may explicitly add adaptive test bots from Room Settings; bots never join a room automatically. The server only returns the information each viewer is allowed to know.
 
 ## Product Shape
 
@@ -209,8 +209,24 @@ Recommended checks:
 ```bash
 pnpm test:multiplayer
 pnpm test:multiplayer:ui
+pnpm bots:multiplayer
 pnpm build
 ```
+
+Adaptive bot testing:
+
+```bash
+# Start a complete 10-bot game through the public multiplayer API
+pnpm bots:multiplayer
+
+# Add nine bots to a human-created lobby for live UI and mechanic testing
+pnpm bots:multiplayer -- --room ABC123 --count 9
+
+# Reproduce decisions with a fixed strategy seed
+pnpm bots:multiplayer -- --seed regression-42 --preset advanced
+```
+
+These are developer-controlled test clients, not automatic AI seats. Each bot has a distinct play style, parses English role claims and accusations, remembers investigation results, and uses a phase capability registry. New passive roles work without bot changes; a new interactive phase only needs a focused handler in `scripts/multiplayer-bots/strategy.mjs`.
 
 Manual test checklist:
 

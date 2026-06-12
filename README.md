@@ -44,7 +44,7 @@
 
 ---
 
-> Note: Wolfcha began as an AI-native Werewolf experiment. The current main experience has been rebuilt for online human-vs-human multiplayer. AI players are no longer used to fill the table.
+> Note: Wolfcha began as an AI-native Werewolf experiment. The current main experience is online multiplayer. Rooms contain real players by default; a host may explicitly add adaptive test bots from Room Settings when they need to test or fill a private room.
 
 ## 📖 Background
 
@@ -58,7 +58,9 @@ The project keeps the original Wolfcha atmosphere: parchment lobby, red seal ent
 
 - Create or join a room with a short invite code.
 - Play together from different locations and devices.
-- No AI seats and no automatic bot participation.
+- No automatic bot participation.
+- Host can explicitly add adaptive English-speaking bots from Room Settings.
+- Host can remove players or bots before the game starts.
 - Supports rooms from 5 to 12 players.
 - Host can start once the room has enough real players.
 
@@ -179,8 +181,25 @@ Useful local checks:
 ```bash
 pnpm test:multiplayer
 pnpm test:multiplayer:ui
+pnpm bots:multiplayer
 pnpm build
 ```
+
+The adaptive bot runner creates a room with 10 English-speaking test clients. They read public or wolf-only chat, remember claims and accusations, and choose actions through the same multiplayer API as a browser player:
+
+```bash
+# Create and run a 10-bot room
+pnpm bots:multiplayer
+
+# Fill an existing lobby so one human can inspect the live UI
+pnpm bots:multiplayer -- --room ABC123 --count 9
+
+# Exercise another preset or deployment
+pnpm bots:multiplayer -- --preset chaos
+pnpm bots:multiplayer -- --base-url https://masoi.nguynchupanh.com
+```
+
+The runner is capability-based. Unknown future phases are reported and left to the server timer instead of crashing the test. Add a phase handler in `scripts/multiplayer-bots/strategy.mjs` only when a new role introduces a genuinely new action contract.
 
 The UI test mode can be opened with:
 

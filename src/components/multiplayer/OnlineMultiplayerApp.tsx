@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, Copy, Crosshair, Drop, Eye, FingerprintSimple, Gear, PaperPlaneRight, Shield, SignOut, Skull, Timer, UsersThree, X } from "@phosphor-icons/react";
+import { CheckCircle, Copy, Crosshair, Drop, Eye, FingerprintSimple, Gear, PaperPlaneRight, Robot, Shield, SignOut, Skull, Timer, UserMinus, UserPlus, UsersThree, X } from "@phosphor-icons/react";
 import { DayIcon, NightIcon, VoteIcon, WerewolfIcon } from "@/components/icons/FlatIcons";
 import { GameBackground } from "@/components/game/GameBackground";
 import LoadingMiniGame from "@/components/game/MiniGame/LoadingMiniGame";
@@ -28,6 +28,7 @@ import {
 const roleLabel = MULTIPLAYER_ROLE_LABEL;
 
 const MIN_PLAYERS_TO_START = 5;
+const DEFAULT_CREATE_PLAYER_COUNT = 10;
 const PLAYER_COUNT_OPTIONS = [5, 6, 7, 8, 9, 10, 11, 12];
 const VISIBLE_TEST_STEP_DELAY_MS = 2600;
 
@@ -60,13 +61,13 @@ function toGamePlayer(player: MultiplayerSeat | MultiplayerPlayer, clientId: str
     alignment: live?.alignment ?? "village",
     isHuman: player.clientId === clientId,
     agentProfile: {
-      modelRef: { provider: "newapi", model: "human" },
+      modelRef: { provider: "newapi", model: player.isBot ? "room-bot" : "human" },
       persona: {
         mbti: "",
         gender: "nonbinary",
         age: 18,
         voiceRules: [],
-        basicInfo: player.clientId === clientId ? "You" : "Online player",
+        basicInfo: player.clientId === clientId ? "You" : player.isBot ? "Adaptive room bot" : "Online player",
       },
     },
   };
@@ -247,15 +248,17 @@ export function OnlineMultiplayerApp() {
   const [clientId, setClientId] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [joinCode, setJoinCode] = useState(initialRoom);
-  const [playerCount, setPlayerCount] = useState(10);
+  const [playerCount, setPlayerCount] = useState(DEFAULT_CREATE_PLAYER_COUNT);
   const [rolePreset, setRolePreset] = useState<MultiplayerRolePreset>("classic");
   const [roleEditorRoles, setRoleEditorRoles] = useState<Role[]>(() => getDefaultMultiplayerRoles(10, "classic"));
   const [room, setRoom] = useState<MultiplayerRoom | null>(null);
   const [loading, setLoading] = useState(false);
   const [chatText, setChatText] = useState("");
   const [roomSettingsOpen, setRoomSettingsOpen] = useState(false);
+  const [memberActionPending, setMemberActionPending] = useState<string | null>(null);
   const [endReportOpen, setEndReportOpen] = useState(false);
   const [previewRole, setPreviewRole] = useState<Role | null>(null);
+  const [createTransition, setCreateTransition] = useState<{ code: string } | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [now, setNow] = useState(Date.now());
@@ -281,19 +284,21 @@ export function OnlineMultiplayerApp() {
 
   useEffect(() => {
     if (room) return;
-    setRoleEditorRoles(getDefaultMultiplayerRoles(playerCount, rolePreset));
-  }, [playerCount, rolePreset, room]);
+    setRoleEditorRoles(getDefaultMultiplayerRoles(DEFAULT_CREATE_PLAYER_COUNT, "classic"));
+  }, [room]);
 
   useEffect(() => {
     if (room?.status !== "lobby") return;
-    const lobbyRoleCount = Math.max(MIN_PLAYERS_TO_START, room.seats.length);
+    if (roomSettingsOpen && room.hostClientId === clientId) return;
+    const lobbyRoleCount = room.playerCount;
+    setPlayerCount(room.playerCount);
     setRolePreset(room.rolePreset ?? "classic");
     setRoleEditorRoles(
       room.roleConfig?.length === lobbyRoleCount
         ? room.roleConfig
         : getDefaultMultiplayerRoles(lobbyRoleCount, room.rolePreset ?? "classic")
     );
-  }, [room?.actionSeq, room?.code, room?.roleConfig, room?.rolePreset, room?.seats.length, room?.status]);
+  }, [clientId, room?.actionSeq, room?.code, room?.hostClientId, room?.playerCount, room?.roleConfig, room?.rolePreset, room?.seats.length, room?.status, roomSettingsOpen]);
 
   const me = useMemo(() => {
     if (!room?.state || !clientId) return null;
@@ -320,6 +325,36 @@ export function OnlineMultiplayerApp() {
   const wolfTarget = typeof state?.nightActions.wolfTarget === "number"
     ? state.players.find((player) => player.seat === state.nightActions.wolfTarget) ?? null
     : null;
+  const isWolfActionPhase = phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION";
+  const wolfTurnOrder = state?.players
+    .filter((player) => player.alive && isWolfRole(player.role))
+    .sort((a, b) => a.seat - b.seat) ?? [];
+  const isRecruitWolfNight = phase === "NIGHT_WOLF_ACTION" && !!state && (
+    state.roleState?.bigBadWolfRecruitNight === state.day ||
+    typeof state.nightActions.bigBadWolfRecruitConfirmedAt === "number"
+  );
+  const wolfActionConfirmed = isRecruitWolfNight
+    ? typeof state?.nightActions.bigBadWolfRecruitConfirmedAt === "number"
+    : typeof state?.nightActions.wolfTargetConfirmedAt === "number";
+  const wolfTieSeats = isRecruitWolfNight
+    ? state?.nightActions.bigBadWolfRecruitTieSeats ?? []
+    : state?.nightActions.wolfTieSeats ?? [];
+  const wolfVoteTurnIndex = isRecruitWolfNight
+    ? state?.nightActions.bigBadWolfRecruitTurnIndex ?? 0
+    : state?.nightActions.wolfVoteTurnIndex ?? 0;
+  const currentWolfVoter = wolfTurnOrder[Math.min(wolfVoteTurnIndex, Math.max(0, wolfTurnOrder.length - 1))] ?? null;
+  const isMyWolfTurn = !!me && isWolfRole(me.role) && currentWolfVoter?.clientId === clientId && !wolfActionConfirmed;
+  const confirmedWolfTargets = useMemo(() => (
+    isRecruitWolfNight
+      ? typeof state?.nightActions.bigBadWolfRecruitTarget === "number"
+        ? [state.nightActions.bigBadWolfRecruitTarget]
+        : []
+      : state?.nightActions.wolfTargets?.length
+        ? state.nightActions.wolfTargets
+        : typeof state?.nightActions.wolfTarget === "number"
+          ? [state.nightActions.wolfTarget]
+          : []
+  ), [isRecruitWolfNight, state?.nightActions.bigBadWolfRecruitTarget, state?.nightActions.wolfTarget, state?.nightActions.wolfTargets]);
   const mySeerChecks = me?.role === "Seer" ? state?.nightActions.seerChecks[clientId] ?? [] : [];
   const latestSeerCheck = mySeerChecks.length > 0 ? mySeerChecks[mySeerChecks.length - 1] : null;
   const latestSeerTarget = typeof latestSeerCheck?.targetSeat === "number"
@@ -478,30 +513,26 @@ export function OnlineMultiplayerApp() {
     window.localStorage.setItem("wolfcha.multiplayer.name", name);
   };
 
-  const updateCreatePreset = (preset: MultiplayerRolePreset) => {
-    setRolePreset(preset);
-    setRoleEditorRoles(getDefaultMultiplayerRoles(playerCount, preset));
-  };
-
-  const updateCreateRole = (index: number, role: Role) => {
-    setRoleEditorRoles((roles) => roles.map((item, itemIndex) => (itemIndex === index ? role : item)));
-  };
-
   const createRoom = async () => {
-    if (!clientId) return;
+    if (!clientId || !displayName.trim()) return;
     setLoading(true);
     try {
       const res = await fetch("/api/multiplayer/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, displayName, playerCount, rolePreset, roleConfig: roleEditorRoles }),
+        body: JSON.stringify({ clientId, displayName, playerCount: DEFAULT_CREATE_PLAYER_COUNT, rolePreset: "classic" }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to create room");
-      setRoom(json.room);
       setJoinCode(json.room.code);
+      setCreateTransition({ code: json.room.code });
+      await wait(1280);
+      setRoom(json.room);
       router.replace(`/?room=${encodeURIComponent(json.room.code)}`);
+      await wait(80);
+      setCreateTransition(null);
     } catch (error) {
+      setCreateTransition(null);
       toast.error(error instanceof Error ? error.message : "Could not create room");
     } finally {
       setLoading(false);
@@ -509,7 +540,7 @@ export function OnlineMultiplayerApp() {
   };
 
   const joinRoom = async () => {
-    if (!clientId || !joinCode.trim()) return;
+    if (!clientId || !joinCode.trim() || !displayName.trim()) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/multiplayer/rooms/${encodeURIComponent(joinCode)}/join`, {
@@ -519,9 +550,15 @@ export function OnlineMultiplayerApp() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to join room");
+      setJoinCode(json.room.code);
+      setCreateTransition({ code: json.room.code });
+      await wait(1280);
       setRoom(json.room);
       router.replace(`/?room=${encodeURIComponent(json.room.code)}`);
+      await wait(80);
+      setCreateTransition(null);
     } catch (error) {
+      setCreateTransition(null);
       toast.error(error instanceof Error ? error.message : "Could not join room");
     } finally {
       setLoading(false);
@@ -549,21 +586,64 @@ export function OnlineMultiplayerApp() {
   };
 
   const updateLobbyPreset = (preset: MultiplayerRolePreset) => {
-    const count = Math.max(MIN_PLAYERS_TO_START, room?.seats.length ?? playerCount);
     setRolePreset(preset);
-    setRoleEditorRoles(getDefaultMultiplayerRoles(count, preset));
+    setRoleEditorRoles(getDefaultMultiplayerRoles(playerCount, preset));
   };
 
   const updateLobbyRole = (index: number, role: Role) => {
     setRoleEditorRoles((roles) => roles.map((item, itemIndex) => (itemIndex === index ? role : item)));
   };
 
+  const updateLobbyPlayerCount = (count: number) => {
+    const nextCount = Math.max(count, room?.seats.length ?? MIN_PLAYERS_TO_START);
+    setPlayerCount(nextCount);
+    setRoleEditorRoles(getDefaultMultiplayerRoles(nextCount, rolePreset));
+  };
+
   const saveLobbyRoles = async () => {
     if (!clientId) return;
-    const saved = await sendAction({ type: "UPDATE_ROLE_CONFIG", clientId, roles: roleEditorRoles, preset: rolePreset });
+    const saved = await sendAction({ type: "UPDATE_ROLE_CONFIG", clientId, roles: roleEditorRoles, preset: rolePreset, playerCount });
     if (saved) {
       setRoomSettingsOpen(false);
       toast.success("Room settings saved");
+    }
+  };
+
+  const addRoomBots = async (count: number) => {
+    if (!clientId || !room || count <= 0 || validateRoleConfig(roleEditorRoles)) return;
+    setMemberActionPending("add-bot");
+    try {
+      const hasUnsavedRoomSetup =
+        room.playerCount !== playerCount ||
+        room.rolePreset !== rolePreset ||
+        JSON.stringify(room.roleConfig ?? []) !== JSON.stringify(roleEditorRoles);
+      if (hasUnsavedRoomSetup) {
+        const saved = await sendAction({
+          type: "UPDATE_ROLE_CONFIG",
+          clientId,
+          roles: roleEditorRoles,
+          preset: rolePreset,
+          playerCount,
+        });
+        if (!saved) return;
+      }
+      const added = await sendAction({ type: "ADD_BOT", clientId, count });
+      if (added) toast.success(count === 1 ? "Bot added to the room" : `${count} bots added to the room`);
+    } finally {
+      setMemberActionPending(null);
+    }
+  };
+
+  const kickRoomPlayer = async (seat: MultiplayerSeat) => {
+    if (!clientId || seat.clientId === room?.hostClientId) return;
+    const confirmed = window.confirm(`Remove ${seat.displayName} from this room?`);
+    if (!confirmed) return;
+    setMemberActionPending(seat.clientId);
+    try {
+      const removed = await sendAction({ type: "KICK_PLAYER", clientId, targetClientId: seat.clientId });
+      if (removed) toast.success(`${seat.displayName} was removed`);
+    } finally {
+      setMemberActionPending(null);
     }
   };
 
@@ -707,8 +787,11 @@ export function OnlineMultiplayerApp() {
     if (phase === "NIGHT_CUPID_ACTION") return me.role === "Cupid";
     if (phase === "NIGHT_CULT_ACTION") return me.role === "CultLeader" && player.clientId !== me.clientId;
     if (phase === "NIGHT_GUARD_ACTION") return me.role === "Guard" && player.clientId !== me.clientId;
-    if (phase === "NIGHT_WOLF_ACTION") return isWolfRole(me.role) && !isWolfRole(player.role);
-    if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return isWolfRole(me.role) && !isWolfRole(player.role);
+    if (phase === "NIGHT_WOLF_ACTION" || phase === "NIGHT_BIG_BAD_WOLF_ACTION") {
+      return isMyWolfTurn &&
+        !isWolfRole(player.role) &&
+        (wolfTieSeats.length === 0 || wolfTieSeats.includes(player.seat));
+    }
     if (phase === "NIGHT_WITCH_ACTION") return me.role === "Witch" && !witchPoisonUsed;
     if (phase === "NIGHT_SEER_ACTION") return me.role === "Seer" && player.clientId !== me.clientId;
     if (phase === "NIGHT_SORCERER_ACTION") return me.role === "Sorcerer" && player.clientId !== me.clientId;
@@ -769,7 +852,6 @@ export function OnlineMultiplayerApp() {
     return chipBySeat;
   }, [me, phase, state]);
 
-  const isRecruitWolfNight = phase === "NIGHT_WOLF_ACTION" && !!state && state.roleState?.bigBadWolfRecruitNight === state.day;
   const wolfChoiceStatus = useMemo(() => {
     if (!state || !me || !isWolfRole(me.role) || (phase !== "NIGHT_WOLF_ACTION" && phase !== "NIGHT_BIG_BAD_WOLF_ACTION")) return [];
     const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
@@ -784,11 +866,15 @@ export function OnlineMultiplayerApp() {
         return {
           wolf,
           target,
-          label: target ? `${isRecruitNight ? "Curse" : "Bite"}: ${target.displayName}` : "Choosing...",
+          label: target
+            ? `${isRecruitNight ? "Curse" : "Bite"}: ${target.displayName}`
+            : currentWolfVoter?.clientId === wolf.clientId
+              ? "Choosing now"
+              : "Waiting",
           tone: isRecruitNight ? "curse" : "wolf",
         };
       });
-  }, [me, phase, state]);
+  }, [currentWolfVoter?.clientId, me, phase, state]);
   const wolfTargetChoiceChips = useMemo<Record<number, PlayerActionChip[]>>(() => {
     if (!state || !me || !isWolfRole(me.role) || (phase !== "NIGHT_WOLF_ACTION" && phase !== "NIGHT_BIG_BAD_WOLF_ACTION")) return {};
     const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
@@ -940,7 +1026,11 @@ export function OnlineMultiplayerApp() {
     if (phase === "NIGHT_CUPID_ACTION") return "Bind two lovers";
     if (phase === "NIGHT_CULT_ACTION") return "Recruit to cult";
     if (phase === "NIGHT_GUARD_ACTION") return "Protect a player";
-    if (phase === "NIGHT_WOLF_ACTION") return isRecruitWolfNight ? "Choose a new wolf" : "Choose a bite";
+    if (phase === "NIGHT_WOLF_ACTION") {
+      if (wolfActionConfirmed) return isRecruitWolfNight ? "The curse is sealed" : "Tonight's target";
+      if (wolfTieSeats.length > 1) return "Break the tie";
+      return isRecruitWolfNight ? "Choose a new wolf" : "Choose a bite";
+    }
     if (phase === "NIGHT_BIG_BAD_WOLF_ACTION") return "Choose a new wolf";
     if (phase === "NIGHT_WITCH_ACTION") return "Use your potion";
     if (phase === "NIGHT_SEER_ACTION") return "Inspect a player";
@@ -972,6 +1062,7 @@ export function OnlineMultiplayerApp() {
     : "";
   const isActionSubmitted = typeof mySubmittedTargetSeat === "number";
   const actionConfirmDisabled = isActionSubmitted ||
+    (isWolfActionPhase && !isMyWolfTurn) ||
     (phase === "NIGHT_CUPID_ACTION" ? selectedSeats.length !== 2 : selectedSeat === null);
 
   const actionHint = useMemo(() => {
@@ -984,7 +1075,24 @@ export function OnlineMultiplayerApp() {
     if (phase === "NIGHT_WOLF_ACTION") {
       const isRecruitNight = state.roleState?.bigBadWolfRecruitNight === state.day;
       if (isWolfRole(me.role)) {
-        return isRecruitNight ? "Wolves choose one player to turn into a wolf. No bite tonight." : "Wolves choose a target.";
+        if (wolfActionConfirmed) {
+          const targetNames = confirmedWolfTargets
+            .map((seat) => state.players.find((player) => player.seat === seat)?.displayName ?? `Seat ${seat + 1}`)
+            .join(", ");
+          return isRecruitWolfNight
+            ? `${targetNames} will join the wolves tonight.`
+            : `The pack will attack ${targetNames} tonight.`;
+        }
+        if (wolfTieSeats.length > 1) {
+          return isMyWolfTurn
+            ? "The vote tied. Choose one of the highlighted targets."
+            : `The vote tied. Waiting for ${currentWolfVoter?.displayName ?? "the next wolf"}.`;
+        }
+        return isMyWolfTurn
+          ? isRecruitNight
+            ? "It is your turn. Choose one player to turn into a wolf. No bite tonight."
+            : "It is your turn. Choose the pack's target."
+          : `Waiting for ${currentWolfVoter?.displayName ?? "the next wolf"} to choose.`;
       }
       return isRecruitNight ? "Waiting for the wolves to recruit." : "Waiting for the wolves.";
     }
@@ -1009,7 +1117,7 @@ export function OnlineMultiplayerApp() {
       return "Village wins.";
     }
     return "";
-  }, [clientId, isHost, me, phase, state, witchHealUsed, witchPoisonUsed, wolfTarget]);
+  }, [clientId, confirmedWolfTargets, currentWolfVoter?.displayName, isHost, isMyWolfTurn, isRecruitWolfNight, me, phase, state, witchHealUsed, witchPoisonUsed, wolfActionConfirmed, wolfTarget, wolfTieSeats.length]);
 
   const visibleTestPanel = isVisibleTestMode ? (
     <div className="wc-visible-test-panel">
@@ -1033,19 +1141,64 @@ export function OnlineMultiplayerApp() {
     </div>
   ) : null;
 
+  const createTransitionOverlay = (
+    <AnimatePresence>
+      {createTransition && (
+        <motion.div
+          className="wc-room-camera-transition"
+          aria-hidden="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className="wc-room-camera-transition__tunnel"
+            initial={{ scale: 0.78, opacity: 0 }}
+            animate={{ scale: 1.34, opacity: 1 }}
+            exit={{ scale: 1.8, opacity: 0 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="wc-room-camera-transition__iris" />
+          </motion.div>
+          <motion.div
+            className="wc-room-camera-transition__text"
+            initial={{ y: 18, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -12, opacity: 0 }}
+            transition={{ duration: 0.38, delay: 0.14 }}
+          >
+            <span>Room {createTransition.code}</span>
+            <strong>The seal is opening</strong>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   if (!room) {
     return (
       <main className="min-h-screen wc-contract-screen flex items-center justify-center px-5 selection:bg-[var(--color-accent)] selection:text-white">
         <div className="wc-contract-fog" aria-hidden="true" />
         <div className="wc-contract-vignette" aria-hidden="true" />
-        <section className="relative z-10 wc-contract-paper w-full max-w-[620px]">
+        <motion.section
+          className="relative z-10 wc-contract-paper wc-mp-create-contract w-full"
+          animate={createTransition
+            ? { y: -34, scale: 1.08, rotateX: 7, filter: "blur(1px)" }
+            : { y: 0, scale: 1, rotateX: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div className="wc-contract-borders" aria-hidden="true" />
           <div className="mt-2 text-center">
             <div className="wc-contract-title">WOLFCHA</div>
-            <div className="wc-contract-subtitle">Online multiplayer</div>
+            <div className="wc-contract-subtitle">The blood pact</div>
           </div>
-          <div className="mt-7 space-y-4">
-            <label className="block text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Your name</label>
+          <div className="wc-mp-contract-oath">
+            <p>I enter by my name and keep my face hidden when night arrives.</p>
+            <p>Let the room be sealed. Let the table open.</p>
+          </div>
+          <div className="mt-6 space-y-4">
+            <label className="wc-contract-label block text-center">Sign your name</label>
             <input
               value={displayName}
               onChange={(e) => persistName(e.target.value)}
@@ -1053,53 +1206,38 @@ export function OnlineMultiplayerApp() {
               className="wc-signature-input"
               autoFocus
             />
-            <div className="grid grid-cols-2 gap-3">
-              <label className="space-y-1 text-xs text-[var(--text-muted)]">
-                Players
-                <select
-                  value={playerCount}
-                  onChange={(e) => setPlayerCount(Number(e.target.value))}
-                  className="w-full rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-sm text-[var(--text-primary)]"
-                >
-                  {PLAYER_COUNT_OPTIONS.map((count) => (
-                    <option key={count} value={count}>{count}</option>
-                  ))}
-                </select>
-              </label>
+            <div className="wc-mp-contract-actions">
+              <div className="wc-seal-hint">Press the seal to summon a room</div>
               <button
                 type="button"
                 onClick={createRoom}
-                disabled={loading || !displayName.trim() || !!validateRoleConfig(roleEditorRoles)}
-                className="self-end rounded-md border-2 border-[var(--color-accent)] bg-[var(--color-accent)] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                disabled={loading || !displayName.trim() || !!createTransition}
+                className="wc-wax-seal wc-wax-seal--create"
+                aria-label="Create a room"
               >
-                Create room
+                <FingerprintSimple weight="fill" size={46} className="wc-wax-seal-icon" />
               </button>
             </div>
-            <RoleEditor
-              roles={roleEditorRoles}
-              preset={rolePreset}
-              disabled={loading}
-              onPresetChange={updateCreatePreset}
-              onRoleChange={updateCreateRole}
-            />
-            <div className="flex gap-2">
+            <div className="wc-mp-contract-divider">
+              <span>Already sealed</span>
+            </div>
+            <div className="wc-mp-join-row">
               <input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="Room code"
-                className="min-w-0 flex-1 rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-sm uppercase text-[var(--text-primary)]"
               />
               <button
                 type="button"
                 onClick={joinRoom}
-                disabled={loading || !displayName.trim() || !joinCode.trim()}
-                className="rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] disabled:opacity-50"
+                disabled={loading || !displayName.trim() || !joinCode.trim() || !!createTransition}
               >
                 Join
               </button>
             </div>
           </div>
-        </section>
+        </motion.section>
+        {createTransitionOverlay}
         {visibleTestPanel}
       </main>
     );
@@ -1136,7 +1274,7 @@ export function OnlineMultiplayerApp() {
               <button
                 type="button"
                 onClick={joinRoom}
-                disabled={loading || !displayName.trim() || room.status !== "lobby"}
+                disabled={loading || !displayName.trim() || room.status !== "lobby" || !!createTransition}
                 className="wc-wax-seal"
                 aria-label="Join this room"
               >
@@ -1145,6 +1283,7 @@ export function OnlineMultiplayerApp() {
             </div>
           </div>
         </section>
+        {createTransitionOverlay}
         {visibleTestPanel}
       </main>
     );
@@ -1152,6 +1291,7 @@ export function OnlineMultiplayerApp() {
 
   return (
     <main data-theme={visualIsNight ? "dark" : undefined} className="game-stage wc-multiplayer-game min-h-screen overflow-hidden text-[var(--text-primary)]">
+      {createTransitionOverlay}
       <GameBackground isNight={visualIsNight} isBlinking={!!transitionCue} />
       <div className="h-screen flex flex-col">
         <header className="wc-topbar wc-topbar--responsive shrink-0">
@@ -1240,6 +1380,7 @@ export function OnlineMultiplayerApp() {
                 animationDelay={index * 0.04}
                 isNight={visualIsNight}
                 humanPlayer={legacyMe}
+                isBot={room.seats.find((seat) => seat.clientId === player.playerId)?.isBot}
                 showRoleBadge={!!me && (player.isHuman || phase === "GAME_END" || (isWolfRole(me.role) && isWolfRole(player.role)))}
                 selectionTone={phase === "DAY_VOTE" ? "vote" : isWolfRole(me?.role) ? "wolf" : me?.role === "Witch" ? "witch" : me?.role === "Seer" ? "seer" : "guard"}
                 isInSelectionPhase={!!state}
@@ -1267,11 +1408,17 @@ export function OnlineMultiplayerApp() {
                 phase === "NIGHT_WITCH_ACTION" && me?.role === "Witch" ? "wc-mp-action-stage--witch" : "",
               ].filter(Boolean).join(" ")}
             >
-              {canUseActionConsole ? (
-                <div
+              <AnimatePresence mode="wait" initial={false}>
+                {canUseActionConsole ? (
+                <motion.div
+                  key={`action-${phase}-${wolfActionConfirmed ? "result" : wolfTieSeats.join("-") || "main"}`}
                   className={phase === "NIGHT_WITCH_ACTION" && me.role === "Witch" ? "wc-mp-action-console wc-mp-action-console--witch" : "wc-mp-action-console"}
                   role="group"
                   aria-label={actionConsoleTitle}
+                  initial={{ opacity: 0, y: 14, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.985 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
                   <div className="wc-mp-action-console__head">
                     <div>
@@ -1307,7 +1454,19 @@ export function OnlineMultiplayerApp() {
                       </div>
                     )}
 
-                    {phase === "NIGHT_WITCH_ACTION" ? (
+                    {isWolfActionPhase && wolfActionConfirmed ? (
+                      <div className="wc-mp-wolf-result">
+                        <span>{isRecruitWolfNight ? "Curse confirmed" : "Pack decision"}</span>
+                        <strong>
+                          {confirmedWolfTargets.map((seat) => getPlayerNameBySeat(seat)).join(", ")}
+                        </strong>
+                        <p>
+                          {isRecruitWolfNight
+                            ? "This player joins the wolves tonight. The pack will not bite."
+                            : "All wolves have received tonight's target."}
+                        </p>
+                      </div>
+                    ) : phase === "NIGHT_WITCH_ACTION" ? (
                       <>
                         <div className="wc-mp-witch-target">
                           <div className="wc-mp-witch-target__label">Wolf attack tonight</div>
@@ -1382,7 +1541,7 @@ export function OnlineMultiplayerApp() {
                             </div>
                           </div>
                         )}
-                        {actionTargets.length > 0 && !isActionSubmitted && (
+                        {actionTargets.length > 0 && !isActionSubmitted && (!isWolfActionPhase || isMyWolfTurn) && (
                           <div className="wc-mp-action-target-grid">
                             {actionTargets.map((player) => {
                               const selected = phase === "NIGHT_CUPID_ACTION" ? selectedSeats.includes(player.seat) : selectedSeat === player.seat;
@@ -1419,7 +1578,7 @@ export function OnlineMultiplayerApp() {
                             })}
                           </div>
                         )}
-                        {!isActionSubmitted && (
+                        {!isActionSubmitted && (!isWolfActionPhase || isMyWolfTurn) && (
                           <div className="wc-mp-action-console__actions">
                             <div className="wc-mp-action-console__selection">{actionSelectionText}</div>
                             <button type="button" disabled={actionConfirmDisabled} onClick={submitSelectedAction}>
@@ -1454,9 +1613,16 @@ export function OnlineMultiplayerApp() {
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ) : (
-                <>
+                <motion.div
+                  key={`phase-${phase}`}
+                  className="wc-mp-phase-content"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                >
                   <div className="wc-mp-phase-orb">
                     {getPhaseIcon(phase, visualIsNight)}
                   </div>
@@ -1473,8 +1639,9 @@ export function OnlineMultiplayerApp() {
                       <span>{formatSeconds(timerLeftMs)}</span>
                     </div>
                   )}
-                </>
+                </motion.div>
               )}
+              </AnimatePresence>
 
               <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                 {room.status === "lobby" && isHost && (
@@ -1608,7 +1775,21 @@ export function OnlineMultiplayerApp() {
                       }}
                       placeholder={room.status === "lobby" ? "Chat while waiting" : isWolfNightChat ? "Wolf chat. Villagers cannot see this." : "Say something"}
                     />
-                    <button type="button" onClick={submitChat}><PaperPlaneRight size={16} /></button>
+                    <AnimatePresence initial={false}>
+                      {chatText.trim() && (
+                        <motion.button
+                          type="button"
+                          onClick={submitChat}
+                          aria-label="Send message"
+                          initial={{ opacity: 0, x: 8, scale: 0.92 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                          exit={{ opacity: 0, x: 8, scale: 0.92 }}
+                          transition={{ duration: 0.16, ease: "easeOut" }}
+                        >
+                          <PaperPlaneRight size={16} />
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
@@ -1628,6 +1809,7 @@ export function OnlineMultiplayerApp() {
                 animationDelay={index * 0.04}
                 isNight={visualIsNight}
                 humanPlayer={legacyMe}
+                isBot={room.seats.find((seat) => seat.clientId === player.playerId)?.isBot}
                 showRoleBadge={!!me && (player.isHuman || phase === "GAME_END" || (isWolfRole(me.role) && isWolfRole(player.role)))}
                 selectionTone={phase === "DAY_VOTE" ? "vote" : isWolfRole(me?.role) ? "wolf" : me?.role === "Witch" ? "witch" : me?.role === "Seer" ? "seer" : "guard"}
                 isInSelectionPhase={!!state}
@@ -1670,6 +1852,84 @@ export function OnlineMultiplayerApp() {
                 </button>
               </div>
               <div className="wc-room-settings-modal__body">
+                <div className="wc-room-settings-modal__size">
+                  <div>
+                    <span>Room size</span>
+                    <strong>{playerCount} seats</strong>
+                    <p>{room.seats.length}/{playerCount} seated</p>
+                  </div>
+                  <div className="wc-room-size-options" aria-label="Room size">
+                    {PLAYER_COUNT_OPTIONS.map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        disabled={count < room.seats.length}
+                        className={playerCount === count ? "is-active" : ""}
+                        onClick={() => updateLobbyPlayerCount(count)}
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <section className="wc-room-members">
+                  <div className="wc-room-members__head">
+                    <div>
+                      <span>Test players</span>
+                      <strong>Players and adaptive bots</strong>
+                      <p>Bots read English chat, use role actions, and vote through the same room API.</p>
+                    </div>
+                    <div className="wc-room-members__actions">
+                      <button
+                        type="button"
+                        disabled={room.seats.length >= playerCount || memberActionPending !== null || !!validateRoleConfig(roleEditorRoles)}
+                        onClick={() => void addRoomBots(1)}
+                      >
+                        <UserPlus size={15} />
+                        Add bot
+                      </button>
+                      <button
+                        type="button"
+                        disabled={room.seats.length >= playerCount || memberActionPending !== null || !!validateRoleConfig(roleEditorRoles)}
+                        onClick={() => void addRoomBots(playerCount - room.seats.length)}
+                      >
+                        <Robot size={15} />
+                        Fill empty seats
+                      </button>
+                    </div>
+                  </div>
+                  <div className="wc-room-members__list">
+                    {room.seats.map((seat) => {
+                      const isRoomHost = seat.clientId === room.hostClientId;
+                      return (
+                        <div key={seat.clientId} className="wc-room-member">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={getPlayerAvatar(seat.avatarSeed)} alt="" />
+                          <div>
+                            <span>Seat {seat.seat + 1}</span>
+                            <strong>{seat.displayName}</strong>
+                          </div>
+                          <div className="wc-room-member__badges">
+                            {isRoomHost && <b>Host</b>}
+                            {seat.isBot && <b className="is-bot">Bot</b>}
+                          </div>
+                          {!isRoomHost && (
+                            <button
+                              type="button"
+                              className="wc-room-member__kick"
+                              disabled={memberActionPending !== null}
+                              onClick={() => void kickRoomPlayer(seat)}
+                              aria-label={`Remove ${seat.displayName}`}
+                              title={`Remove ${seat.displayName}`}
+                            >
+                              <UserMinus size={16} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
                 <RoleEditor
                   roles={roleEditorRoles}
                   preset={rolePreset}

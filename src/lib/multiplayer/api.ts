@@ -64,12 +64,14 @@ export function roomToDbPatch(room: MultiplayerRoom) {
 export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): MultiplayerRoom {
   if (!room.state) return room;
   const viewer = room.state.players.find((p) => p.clientId === clientId) ?? null;
+  const viewerIsWolf = !!viewer && isWolfRole(viewer.role);
   const canSeeNightTarget =
     room.state.phase === "GAME_END" ||
-    (room.state.phase === "NIGHT_WITCH_ACTION" && viewer?.role === "Witch");
+    (room.state.phase === "NIGHT_WITCH_ACTION" && viewer?.role === "Witch") ||
+    (room.state.phase === "NIGHT_WOLF_ACTION" && viewerIsWolf);
   const canSeeWolfVotes =
     room.state.phase === "GAME_END" ||
-    ((room.state.phase === "NIGHT_WOLF_ACTION" || room.state.phase === "NIGHT_BIG_BAD_WOLF_ACTION") && !!viewer && isWolfRole(viewer.role));
+    ((room.state.phase === "NIGHT_WOLF_ACTION" || room.state.phase === "NIGHT_BIG_BAD_WOLF_ACTION") && viewerIsWolf);
   return {
     ...room,
     state: {
@@ -81,10 +83,16 @@ export function sanitizeRoomForClient(room: MultiplayerRoom, clientId: string): 
       nightActions: {
         lastGuardTarget: viewer?.role === "Guard" ? room.state.nightActions.lastGuardTarget : undefined,
         wolfVotes: canSeeWolfVotes ? room.state.nightActions.wolfVotes : {},
+        wolfVoteTurnIndex: canSeeWolfVotes ? room.state.nightActions.wolfVoteTurnIndex : undefined,
+        wolfTieSeats: canSeeWolfVotes ? room.state.nightActions.wolfTieSeats : undefined,
+        wolfTargetConfirmedAt: canSeeWolfVotes ? room.state.nightActions.wolfTargetConfirmedAt : undefined,
         wolfTarget: canSeeNightTarget ? room.state.nightActions.wolfTarget : undefined,
-        wolfTargets: room.state.phase === "GAME_END" ? room.state.nightActions.wolfTargets : undefined,
+        wolfTargets: canSeeNightTarget ? room.state.nightActions.wolfTargets : undefined,
         bigBadWolfRecruitVotes: canSeeWolfVotes ? room.state.nightActions.bigBadWolfRecruitVotes : {},
-        bigBadWolfRecruitTarget: room.state.phase === "GAME_END" ? room.state.nightActions.bigBadWolfRecruitTarget : undefined,
+        bigBadWolfRecruitTurnIndex: canSeeWolfVotes ? room.state.nightActions.bigBadWolfRecruitTurnIndex : undefined,
+        bigBadWolfRecruitTieSeats: canSeeWolfVotes ? room.state.nightActions.bigBadWolfRecruitTieSeats : undefined,
+        bigBadWolfRecruitConfirmedAt: canSeeWolfVotes ? room.state.nightActions.bigBadWolfRecruitConfirmedAt : undefined,
+        bigBadWolfRecruitTarget: canSeeWolfVotes ? room.state.nightActions.bigBadWolfRecruitTarget : undefined,
         witchSave: room.state.phase === "GAME_END" ? room.state.nightActions.witchSave : undefined,
         witchPoison: room.state.phase === "GAME_END" ? room.state.nightActions.witchPoison : undefined,
         seerChecks: viewer?.role === "Seer"

@@ -147,6 +147,28 @@ async function main() {
     }
     logStep(`joined ${TEST_PLAYERS.length} virtual players`);
 
+    const withBot = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "ADD_BOT",
+      clientId: clientIds[0],
+      count: 1,
+    });
+    const addedBot = withBot.json.room.seats.find((seat) => seat.isBot);
+    assert(addedBot, "Host could not add a room bot.");
+    const unauthorizedKick = await request(
+      baseUrl,
+      `/api/multiplayer/rooms/${code}/action`,
+      { type: "KICK_PLAYER", clientId: clientIds[1], targetClientId: addedBot.clientId },
+      { allowFailure: true }
+    );
+    assert(unauthorizedKick.res.status === 400, "A non-host player could kick another player.");
+    const withoutBot = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "KICK_PLAYER",
+      clientId: clientIds[0],
+      targetClientId: addedBot.clientId,
+    });
+    assert(!withoutBot.json.room.seats.some((seat) => seat.clientId === addedBot.clientId), "Host could not remove a room bot.");
+    logStep("host can add and remove bots while non-host kick is rejected");
+
     const started = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
       type: "START_GAME",
       clientId: clientIds[0],
@@ -178,6 +200,77 @@ async function main() {
       "Villager could see wolf-only chat."
     );
     logStep("wolf night chat is private");
+
+    await patchState(supabase, code, (state) => {
+      const forced = forceRoles(state, clientIds);
+      return {
+        ...forced,
+        phase: "NIGHT_WOLF_ACTION",
+        phaseStartedAt: Date.now(),
+        phaseDeadlineAt: Date.now() + 60_000,
+        players: forced.players.map((player, index) => (
+          index === 2 ? { ...player, role: "Werewolf", alignment: "wolf" } : player
+        )),
+        nightActions: {
+          wolfVotes: {},
+          wolfVoteTurnIndex: 0,
+          wolfTargets: [],
+          bigBadWolfRecruitVotes: {},
+          seerChecks: {},
+        },
+      };
+    });
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "NIGHT_ACTION",
+      clientId: clientIds[1],
+      targetSeat: 0,
+    });
+    const repeatedWolfVote = await request(
+      baseUrl,
+      `/api/multiplayer/rooms/${code}/action`,
+      { type: "NIGHT_ACTION", clientId: clientIds[1], targetSeat: 3 },
+      { allowFailure: true }
+    );
+    assert(repeatedWolfVote.res.status === 400, "A wolf voted outside its turn.");
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "NIGHT_ACTION",
+      clientId: clientIds[2],
+      targetSeat: 3,
+    });
+    const tiedWolfState = (await getDbRoom(supabase, code)).state;
+    assert(
+      tiedWolfState.nightActions.wolfTieSeats?.length === 2 &&
+      tiedWolfState.nightActions.wolfTieSeats.includes(0) &&
+      tiedWolfState.nightActions.wolfTieSeats.includes(3),
+      "Wolf tie-break targets were not created."
+    );
+    assert(tiedWolfState.nightActions.wolfVoteTurnIndex === 0, "Wolf tie-break did not restart from the first wolf.");
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "NIGHT_ACTION",
+      clientId: clientIds[1],
+      targetSeat: 3,
+    });
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "NIGHT_ACTION",
+      clientId: clientIds[2],
+      targetSeat: 3,
+    });
+    const confirmedWolfState = (await getDbRoom(supabase, code)).state;
+    assert(confirmedWolfState.phase === "NIGHT_WOLF_ACTION", "Wolf result did not remain visible before the Witch phase.");
+    assert(confirmedWolfState.nightActions.wolfTarget === 3, "Wolf tie-break did not confirm the target.");
+    assert(typeof confirmedWolfState.nightActions.wolfTargetConfirmedAt === "number", "Wolf result confirmation timestamp is missing.");
+    const confirmedWolfView = await getRoom(baseUrl, code, clientIds[1]);
+    const confirmedVillagerView = await getRoom(baseUrl, code, clientIds[0]);
+    assert(confirmedWolfView.state.nightActions.wolfTarget === 3, "Wolves could not see the confirmed target.");
+    assert(typeof confirmedVillagerView.state.nightActions.wolfTarget !== "number", "Villager could see the confirmed wolf target.");
+    await patchState(supabase, code, (state) => ({
+      ...state,
+      phaseStartedAt: Date.now() - 5_000,
+      phaseDeadlineAt: Date.now() - 1_000,
+    }));
+    const afterWolfResult = await getRoom(baseUrl, code, clientIds[1]);
+    assert(afterWolfResult.state.phase === "NIGHT_WITCH_ACTION", "Wolf result did not advance to the Witch phase.");
+    logStep("wolves vote in sequence, break ties, and privately receive the final target");
 
     await patchState(supabase, code, (state) => ({
       ...forceRoles(state, clientIds),
@@ -296,6 +389,39 @@ async function main() {
     assert(autoNightState.phaseDeadlineAt > Date.now(), "Auto-started night phase did not receive a deadline.");
     logStep("vote result auto-advances to the next night");
 
+    await patchState(supabase, code, (state) => {
+      const forced = forceRoles(state, clientIds);
+      return {
+        ...forced,
+        day: 4,
+        phase: "NIGHT_WOLF_ACTION",
+        phaseStartedAt: Date.now() - 61_000,
+        phaseDeadlineAt: Date.now() - 1_000,
+        players: forced.players.map((player, index) => (
+          index === 2 ? { ...player, role: "Werewolf", alignment: "wolf" } : player
+        )),
+        nightActions: {
+          wolfVotes: {
+            [clientIds[1]]: 0,
+            [clientIds[2]]: 3,
+          },
+          wolfVoteTurnIndex: 1,
+          wolfTargets: [],
+          bigBadWolfRecruitVotes: {},
+          seerChecks: {},
+        },
+      };
+    });
+    const timedTieState = (await getRoom(baseUrl, code, clientIds[1])).state;
+    assert(timedTieState.phase === "NIGHT_WOLF_ACTION", "Wolf timeout skipped a tied vote.");
+    assert(
+      timedTieState.nightActions.wolfTieSeats?.includes(0) &&
+      timedTieState.nightActions.wolfTieSeats?.includes(3),
+      "Wolf timeout did not open a tie-break."
+    );
+    assert(timedTieState.phaseDeadlineAt > Date.now(), "Wolf tie-break did not receive a new deadline.");
+    logStep("wolf timeout preserves ties and opens a new tie-break round");
+
     await patchState(supabase, code, (state) => ({
       ...forceRoles(state, clientIds),
       day: 4,
@@ -346,6 +472,36 @@ async function main() {
     assert(restarted.json.room.state === null, "Restart did not clear game state.");
     assert(restarted.json.room.seats.length === TEST_PLAYERS.length, "Restart did not keep seated players.");
     logStep("game end reveals roles and host can restart the same room back to lobby");
+
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "UPDATE_ROLE_CONFIG",
+      clientId: clientIds[0],
+      playerCount: 7,
+      preset: "classic",
+      roles: ["Werewolf", "Werewolf", "Seer", "Witch", "Hunter", "Villager", "Villager"],
+    });
+    const lobbyWithBot = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "ADD_BOT",
+      clientId: clientIds[0],
+      count: 1,
+    });
+    const roomBot = lobbyWithBot.json.room.seats.find((seat) => seat.isBot);
+    assert(roomBot, "Could not create an automated room bot.");
+    await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+      type: "START_GAME",
+      clientId: clientIds[0],
+    });
+    let roomAfterBotAck = null;
+    for (const id of clientIds) {
+      const acknowledged = await request(baseUrl, `/api/multiplayer/rooms/${code}/action`, {
+        type: "ACK_ROLE",
+        clientId: id,
+      });
+      roomAfterBotAck = acknowledged.json.room;
+    }
+    assert(roomAfterBotAck.state.roleAcks[roomBot.clientId], "Room bot did not automatically acknowledge its role.");
+    assert(roomAfterBotAck.state.phase !== "ROLE_REVEAL", "Room bot prevented the game from leaving role reveal.");
+    logStep("server-managed room bot automatically acknowledges its role");
 
     console.log("\nMultiplayer smoke test passed.");
   } finally {

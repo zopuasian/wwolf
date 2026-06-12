@@ -1,0 +1,98 @@
+export const BOT_PERSONAS = [
+  {
+    name: "Morgan",
+    style: "analytical",
+    aggression: 0.42,
+    skepticism: 0.78,
+    bluff: 0.48,
+    risk: 0.28,
+    phrases: ["The timing does not add up.", "I want a cleaner explanation from"],
+  },
+  {
+    name: "Riley",
+    style: "direct",
+    aggression: 0.82,
+    skepticism: 0.66,
+    bluff: 0.63,
+    risk: 0.7,
+    phrases: ["I am comfortable voting", "My strongest wolf read is"],
+  },
+  {
+    name: "Alex",
+    style: "calm",
+    aggression: 0.3,
+    skepticism: 0.52,
+    bluff: 0.4,
+    risk: 0.22,
+    phrases: ["Let us slow this down.", "For now, I am watching"],
+  },
+  {
+    name: "Casey",
+    style: "social",
+    aggression: 0.5,
+    skepticism: 0.44,
+    bluff: 0.72,
+    risk: 0.5,
+    phrases: ["The room feels split around", "I want to hear more from"],
+  },
+  {
+    name: "Jordan",
+    style: "methodical",
+    aggression: 0.36,
+    skepticism: 0.86,
+    bluff: 0.32,
+    risk: 0.2,
+    phrases: ["I am tracking the claims.", "The vote history points toward"],
+  },
+  {
+    name: "Taylor",
+    style: "instinctive",
+    aggression: 0.68,
+    skepticism: 0.5,
+    bluff: 0.58,
+    risk: 0.76,
+    phrases: ["My gut says", "I do not like the way"],
+  },
+  {
+    name: "Quinn",
+    style: "probing",
+    aggression: 0.58,
+    skepticism: 0.8,
+    bluff: 0.46,
+    risk: 0.42,
+    phrases: ["Can you explain that, ", "There is a contradiction around"],
+  },
+  {
+    name: "Avery",
+    style: "diplomatic",
+    aggression: 0.24,
+    skepticism: 0.46,
+    bluff: 0.66,
+    risk: 0.3,
+    phrases: ["I see both sides, but", "My current concern is"],
+  },
+  {
+    name: "Rowan",
+    style: "chaotic",
+    aggression: 0.74,
+    skepticism: 0.6,
+    bluff: 0.84,
+    risk: 0.9,
+    phrases: ["This may sound wild, but", "I am putting pressure on"],
+  },
+  {
+    name: "Sage",
+    style: "observant",
+    aggression: 0.4,
+    skepticism: 0.72,
+    bluff: 0.36,
+    risk: 0.26,
+    phrases: ["The quietest shift came from", "I noticed the reaction from"],
+  },
+];
+
+export function personaForIndex(index) {
+  const base = BOT_PERSONAS[index % BOT_PERSONAS.length];
+  const cycle = Math.floor(index / BOT_PERSONAS.length);
+  return cycle === 0 ? base : { ...base, name: `${base.name} ${cycle + 1}` };
+}

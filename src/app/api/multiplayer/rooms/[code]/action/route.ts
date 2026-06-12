@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ code: s
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       const found = await getStoredRoom(code);
       if (!found.ok) {
         return NextResponse.json({ error: "Could not load room", details: serializeStoreError(found.error) }, { status: 500 });
@@ -31,7 +31,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ code: s
           return NextResponse.json({ error: "Could not update room", details: serializeStoreError(updated.error) }, { status: 500 });
         }
         if (updated.value) {
-          return NextResponse.json({ room: sanitizeRoomForClient(updated.value, action.clientId), storage: updated.storage });
+          continue;
         }
         continue;
       }

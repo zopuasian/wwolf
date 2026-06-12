@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "bots:multiplayer": "node scripts/run-multiplayer-bots.mjs",
     "test:multiplayer": "node scripts/multiplayer-smoke-test.mjs",
     "test:multiplayer:ui": "node scripts/open-visible-multiplayer-test.mjs"
   },

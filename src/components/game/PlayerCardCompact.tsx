@@ -29,6 +29,7 @@ interface PlayerCardCompactProps {
   isBadgeCandidate?: boolean;
   variant?: "default" | "mobile";
   isInSelectionPhase?: boolean;
+  isBot?: boolean;
   actionChip?: {
     label: string;
     tone?: "vote" | "wolf" | "curse";
@@ -55,6 +56,7 @@ export function PlayerCardCompact({
   isBadgeCandidate = false,
   variant = "default",
   isInSelectionPhase = false,
+  isBot = false,
   actionChip,
 }: PlayerCardCompactProps) {
   const t = useTranslations();
@@ -338,6 +340,9 @@ export function PlayerCardCompact({
                 {t("common.you")}
               </span>
             )}
+            {isBot && isReady && (
+              <span className="wc-player-card__bot-badge">BOT</span>
+            )}
           </div>
         ) : (
           <>
@@ -351,6 +356,9 @@ export function PlayerCardCompact({
                 <span className="text-[10px] bg-[var(--color-gold)]/90 text-[#1a1614] px-1.5 rounded-sm font-bold leading-none py-0.5 shadow-sm">
                   {t("common.you")}
                 </span>
+              )}
+              {isBot && isReady && (
+                <span className="wc-player-card__bot-badge">BOT</span>
               )}
             </div>
 

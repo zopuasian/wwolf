@@ -6,6 +6,7 @@ import {
   normalizeRoleConfig,
   validateRoleConfig,
 } from "./roles";
+import { createRoomBotSeat, getNextRoomBotAction, isRoomBot } from "./bot-ai";
 import type {
   MultiplayerAction,
   MultiplayerChatMessage,
@@ -22,6 +23,7 @@ export const DISCUSSION_DURATION_MS = 60_000;
 export const VOTE_DURATION_MS = 15_000;
 export const NIGHT_ACTION_DURATION_MS = 15_000;
 export const WOLF_ACTION_DURATION_MS = 60_000;
+export const WOLF_RESULT_DURATION_MS = 4_000;
 export const WITCH_ACTION_DURATION_MS = 30_000;
 export const DAY_RESOLVE_DURATION_MS = 5_000;
 
@@ -293,8 +295,15 @@ function nextNight(state: MultiplayerGameState): MultiplayerGameState {
     nightActions: {
       lastGuardTarget,
       wolfVotes: {},
+      wolfVoteTurnIndex: 0,
+      wolfTieSeats: undefined,
+      wolfTargetConfirmedAt: undefined,
       wolfTargets: [],
       bigBadWolfRecruitVotes: {},
+      bigBadWolfRecruitTurnIndex: 0,
+      bigBadWolfRecruitTieSeats: undefined,
+      bigBadWolfRecruitConfirmedAt: undefined,
+      bigBadWolfRecruitTarget: undefined,
       seerChecks: state.nightActions.seerChecks,
       sorcererChecks: state.nightActions.sorcererChecks ?? {},
       piChecks: state.nightActions.piChecks ?? {},
@@ -324,8 +333,10 @@ export function createInitialMultiplayerState(seats: MultiplayerSeat[], roleConf
     roleAcks: {},
     nightActions: {
       wolfVotes: {},
+      wolfVoteTurnIndex: 0,
       wolfTargets: [],
       bigBadWolfRecruitVotes: {},
+      bigBadWolfRecruitTurnIndex: 0,
       seerChecks: {},
       sorcererChecks: {},
       piChecks: {},
@@ -598,6 +609,31 @@ function topVotedSeats(votes: Record<string, number>, count: number): number[] {
     .map(([seat]) => Number(seat));
 }
 
+function topVoteTieSeats(votes: Record<string, number>): number[] {
+  const counts: Record<number, number> = {};
+  for (const seat of Object.values(votes)) counts[seat] = (counts[seat] || 0) + 1;
+  const max = Math.max(0, ...Object.values(counts));
+  if (max === 0) return [];
+  return Object.entries(counts)
+    .filter(([, count]) => count === max)
+    .map(([seat]) => Number(seat));
+}
+
+function aliveWolvesInTurnOrder(state: MultiplayerGameState): MultiplayerPlayer[] {
+  return state.players
+    .filter((player) => player.alive && isWolfRole(player.role))
+    .sort((a, b) => a.seat - b.seat);
+}
+
+function currentWolfVoter(state: MultiplayerGameState, recruitTonight: boolean): MultiplayerPlayer | null {
+  const wolves = aliveWolvesInTurnOrder(state);
+  if (wolves.length === 0) return null;
+  const turnIndex = recruitTonight
+    ? state.nightActions.bigBadWolfRecruitTurnIndex ?? 0
+    : state.nightActions.wolfVoteTurnIndex ?? 0;
+  return wolves[Math.min(turnIndex, wolves.length - 1)] ?? null;
+}
+
 function completeWolfPhase(state: MultiplayerGameState): MultiplayerGameState {
   if (shouldRecruitWolfTonight(state)) {
     const recruitVotes = state.nightActions.bigBadWolfRecruitVotes ?? {};
@@ -627,19 +663,105 @@ function completeWolfPhase(state: MultiplayerGameState): MultiplayerGameState {
       nightActions: {
         ...state.nightActions,
         bigBadWolfRecruitVotes: recruitVotes,
+        bigBadWolfRecruitTieSeats: undefined,
+        bigBadWolfRecruitTurnIndex: undefined,
+        bigBadWolfRecruitConfirmedAt: Date.now(),
         bigBadWolfRecruitTarget: target.seat,
       },
     };
-    return maybeSkipNightPhase(enterNightPhase(recruitedState, "NIGHT_WITCH_ACTION"));
+    return withPhaseTimer(recruitedState, WOLF_RESULT_DURATION_MS);
   }
 
   const wolfKillCount = state.roleState?.wolfCubRevengeNight === state.day ? 2 : 1;
   const wolfTargets = topVotedSeats(state.nightActions.wolfVotes, wolfKillCount);
   const wolfTarget = wolfTargets[0];
-  return maybeSkipNightPhase(enterNightPhase({
+  if (typeof wolfTarget !== "number") {
+    return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WITCH_ACTION"));
+  }
+  return withPhaseTimer({
     ...state,
-    nightActions: { ...state.nightActions, wolfTarget, wolfTargets },
-  }, "NIGHT_WITCH_ACTION"));
+    nightActions: {
+      ...state.nightActions,
+      wolfTarget,
+      wolfTargets,
+      wolfTieSeats: undefined,
+      wolfVoteTurnIndex: undefined,
+      wolfTargetConfirmedAt: typeof wolfTarget === "number" ? Date.now() : undefined,
+    },
+  }, WOLF_RESULT_DURATION_MS);
+}
+
+function advanceWolfVoteTurn(state: MultiplayerGameState, recruitTonight: boolean, votes: Record<string, number>): MultiplayerGameState {
+  const wolves = aliveWolvesInTurnOrder(state);
+  const currentIndex = recruitTonight
+    ? state.nightActions.bigBadWolfRecruitTurnIndex ?? 0
+    : state.nightActions.wolfVoteTurnIndex ?? 0;
+  const nextIndex = currentIndex + 1;
+
+  if (nextIndex < wolves.length) {
+    return {
+      ...state,
+      nightActions: recruitTonight
+        ? { ...state.nightActions, bigBadWolfRecruitVotes: votes, bigBadWolfRecruitTurnIndex: nextIndex }
+        : { ...state.nightActions, wolfVotes: votes, wolfVoteTurnIndex: nextIndex },
+    };
+  }
+
+  const tieSeats = topVoteTieSeats(votes);
+  if (tieSeats.length > 1) {
+    return {
+      ...state,
+      nightActions: recruitTonight
+        ? {
+            ...state.nightActions,
+            bigBadWolfRecruitVotes: {},
+            bigBadWolfRecruitTieSeats: tieSeats,
+            bigBadWolfRecruitTurnIndex: 0,
+          }
+        : {
+            ...state.nightActions,
+            wolfVotes: {},
+            wolfTieSeats: tieSeats,
+            wolfVoteTurnIndex: 0,
+          },
+    };
+  }
+
+  return completeWolfPhase({
+    ...state,
+    nightActions: recruitTonight
+      ? { ...state.nightActions, bigBadWolfRecruitVotes: votes, bigBadWolfRecruitTieSeats: undefined }
+      : { ...state.nightActions, wolfVotes: votes, wolfTieSeats: undefined },
+  });
+}
+
+function resolveWolfPhaseTimeout(state: MultiplayerGameState): MultiplayerGameState {
+  const recruitTonight = shouldRecruitWolfTonight(state);
+  const votes = recruitTonight
+    ? state.nightActions.bigBadWolfRecruitVotes ?? {}
+    : state.nightActions.wolfVotes;
+  const tieSeats = topVoteTieSeats(votes);
+
+  if (tieSeats.length > 1) {
+    return withPhaseTimer({
+      ...state,
+      nightActions: recruitTonight
+        ? {
+            ...state.nightActions,
+            bigBadWolfRecruitVotes: {},
+            bigBadWolfRecruitTieSeats: tieSeats,
+            bigBadWolfRecruitTurnIndex: 0,
+          }
+        : {
+            ...state.nightActions,
+            wolfVotes: {},
+            wolfTieSeats: tieSeats,
+            wolfVoteTurnIndex: 0,
+          },
+    }, WOLF_ACTION_DURATION_MS);
+  }
+
+  return completeWolfPhase(state);
 }
 
 function advanceTimedNightPhase(state: MultiplayerGameState): MultiplayerGameState {
@@ -653,7 +775,10 @@ function advanceTimedNightPhase(state: MultiplayerGameState): MultiplayerGameSta
     case "NIGHT_GUARD_ACTION":
       return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WOLF_ACTION"));
     case "NIGHT_WOLF_ACTION":
-      return completeWolfPhase(state);
+      if (state.nightActions.wolfTargetConfirmedAt || state.nightActions.bigBadWolfRecruitConfirmedAt) {
+        return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WITCH_ACTION"));
+      }
+      return resolveWolfPhaseTimeout(state);
     case "NIGHT_BIG_BAD_WOLF_ACTION":
       return maybeSkipNightPhase(enterNightPhase(state, "NIGHT_WOLF_ACTION"));
     case "NIGHT_WITCH_ACTION":
@@ -673,7 +798,7 @@ function beginVote(state: MultiplayerGameState, message: string): MultiplayerGam
   return addSystemMessage(withPhaseTimer({ ...state, phase: "DAY_VOTE", votes: {} }, VOTE_DURATION_MS), message);
 }
 
-export function autoAdvanceMultiplayerRoom(room: MultiplayerRoom, now = Date.now()): MultiplayerRoom {
+function advanceRoomTimer(room: MultiplayerRoom, now: number): MultiplayerRoom {
   const state = room.state;
   if (!state?.phaseDeadlineAt || now < state.phaseDeadlineAt) return room;
 
@@ -717,14 +842,65 @@ export function autoAdvanceMultiplayerRoom(room: MultiplayerRoom, now = Date.now
   return room;
 }
 
+function advanceAutomatedRoomBots(room: MultiplayerRoom): MultiplayerRoom {
+  let nextRoom = room;
+  for (let step = 0; step < 48; step += 1) {
+    const action = getNextRoomBotAction(nextRoom);
+    if (!action) break;
+    try {
+      const reduced = reduceMultiplayerAction(nextRoom, action);
+      if (reduced === nextRoom) break;
+      nextRoom = reduced.state?.phase === "GAME_END" ? { ...reduced, status: "ended" } : reduced;
+    } catch {
+      break;
+    }
+  }
+  return nextRoom;
+}
+
+export function autoAdvanceMultiplayerRoom(room: MultiplayerRoom, now = Date.now()): MultiplayerRoom {
+  return advanceAutomatedRoomBots(advanceRoomTimer(room, now));
+}
+
 export function reduceMultiplayerAction(room: MultiplayerRoom, action: MultiplayerAction): MultiplayerRoom {
+  if (action.type === "ADD_BOT") {
+    requireHost(room, action.clientId);
+    if (room.status !== "lobby") throw new Error("Bots can only be added before the game starts.");
+    const freeSeats = room.playerCount - room.seats.length;
+    if (freeSeats <= 0) throw new Error("The room is full.");
+    const requestedCount = Math.max(1, Math.min(freeSeats, Math.round(action.count ?? 1)));
+    const existingBotCount = room.seats.filter((seat) => isRoomBot(seat)).length;
+    const bots = Array.from({ length: requestedCount }, (_, index) => (
+      createRoomBotSeat(room, room.seats.length + index, existingBotCount + index)
+    ));
+    return {
+      ...room,
+      seats: [...room.seats, ...bots],
+      actionSeq: room.actionSeq + 1,
+    };
+  }
+
+  if (action.type === "KICK_PLAYER") {
+    requireHost(room, action.clientId);
+    if (room.status !== "lobby") throw new Error("Players can only be removed before the game starts.");
+    if (action.targetClientId === room.hostClientId) throw new Error("The host cannot be removed.");
+    const nextSeats = reindexSeats(room.seats.filter((seat) => seat.clientId !== action.targetClientId));
+    if (nextSeats.length === room.seats.length) throw new Error("Player is no longer in the room.");
+    return {
+      ...room,
+      seats: nextSeats,
+      actionSeq: room.actionSeq + 1,
+    };
+  }
+
   if (action.type === "LEAVE_ROOM") {
     if (room.status !== "lobby") throw new Error("Cannot leave after the game has started.");
     const nextSeats = reindexSeats(room.seats.filter((seat) => seat.clientId !== action.clientId));
     if (nextSeats.length === room.seats.length) return room;
+    const nextHost = nextSeats.find((seat) => !isRoomBot(seat)) ?? nextSeats[0];
     return {
       ...room,
-      hostClientId: room.hostClientId === action.clientId ? (nextSeats[0]?.clientId ?? action.clientId) : room.hostClientId,
+      hostClientId: room.hostClientId === action.clientId ? (nextHost?.clientId ?? action.clientId) : room.hostClientId,
       seats: nextSeats,
       actionSeq: room.actionSeq + 1,
     };
@@ -751,13 +927,21 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
   if (action.type === "UPDATE_ROLE_CONFIG") {
     requireHost(room, action.clientId);
     if (room.status !== "lobby") throw new Error("Cannot change roles after the game starts.");
-    const roles = normalizeRoleConfig(action.roles, action.roles.length, action.preset ?? room.rolePreset);
+    const nextPlayerCount = clampPlayerCount(Number(action.playerCount ?? room.playerCount));
+    if (nextPlayerCount < room.seats.length) throw new Error("Room size cannot be smaller than seated players.");
+    const nextPreset = action.preset ?? room.rolePreset ?? "classic";
+    const roles = normalizeRoleConfig(
+      action.roles?.length === nextPlayerCount ? action.roles : getDefaultMultiplayerRoles(nextPlayerCount, nextPreset),
+      nextPlayerCount,
+      nextPreset
+    );
     const configError = validateRoleConfig(roles);
     if (configError) throw new Error(configError);
     return {
       ...room,
+      playerCount: nextPlayerCount,
       roleConfig: roles,
-      rolePreset: action.preset ?? room.rolePreset ?? "classic",
+      rolePreset: nextPreset,
       actionSeq: room.actionSeq + 1,
     };
   }
@@ -946,40 +1130,52 @@ export function reduceMultiplayerAction(room: MultiplayerRoom, action: Multiplay
 
     if (state.phase === "NIGHT_WOLF_ACTION") {
       if (!isWolfRole(player.role)) throw new Error("Only wolves can act now.");
+      if (state.nightActions.wolfTargetConfirmedAt || state.nightActions.bigBadWolfRecruitConfirmedAt) {
+        throw new Error("The pack has already chosen tonight's target.");
+      }
       const recruitTonight = shouldRecruitWolfTonight(state);
       if (!recruitTonight && state.roleState?.diseasedWolvesBlockedNight === state.day) {
         throw new Error("Wolves are diseased tonight and cannot kill.");
       }
+      const currentWolf = currentWolfVoter(state, recruitTonight);
+      if (!currentWolf || currentWolf.clientId !== player.clientId) {
+        throw new Error(currentWolf ? `Waiting for ${currentWolf.displayName} to choose.` : "No wolf can act now.");
+      }
       const target = requireAliveTarget(state, action.targetSeat);
       if (isWolfRole(target.role)) throw new Error("Wolves cannot target wolves.");
-      const aliveWolves = state.players.filter((p) => p.alive && isWolfRole(p.role));
 
       if (recruitTonight) {
+        const tieSeats = state.nightActions.bigBadWolfRecruitTieSeats ?? [];
+        if (tieSeats.length > 0 && !tieSeats.includes(target.seat)) {
+          throw new Error("Choose one of the tied targets.");
+        }
         const bigBadWolfRecruitVotes = {
           ...(state.nightActions.bigBadWolfRecruitVotes ?? {}),
           [player.clientId]: target.seat,
         };
-        const allWolvesVoted = aliveWolves.every((wolf) => typeof bigBadWolfRecruitVotes[wolf.clientId] === "number");
         const nextState: MultiplayerGameState = {
           ...state,
           nightActions: { ...state.nightActions, bigBadWolfRecruitVotes },
         };
         return {
           ...room,
-          state: allWolvesVoted ? completeWolfPhase(nextState) : nextState,
+          state: advanceWolfVoteTurn(nextState, true, bigBadWolfRecruitVotes),
           actionSeq: room.actionSeq + 1,
         };
       }
 
+      const tieSeats = state.nightActions.wolfTieSeats ?? [];
+      if (tieSeats.length > 0 && !tieSeats.includes(target.seat)) {
+        throw new Error("Choose one of the tied targets.");
+      }
       const wolfVotes = { ...state.nightActions.wolfVotes, [player.clientId]: target.seat };
-      const allWolvesVoted = aliveWolves.every((wolf) => typeof wolfVotes[wolf.clientId] === "number");
       const nextState: MultiplayerGameState = {
         ...state,
         nightActions: { ...state.nightActions, wolfVotes },
       };
       return {
         ...room,
-        state: allWolvesVoted ? completeWolfPhase(nextState) : nextState,
+        state: advanceWolfVoteTurn(nextState, false, wolfVotes),
         actionSeq: room.actionSeq + 1,
       };
     }

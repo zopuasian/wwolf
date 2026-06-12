@@ -29,6 +29,7 @@ export interface MultiplayerSeat {
   displayName: string;
   avatarSeed: string;
   joinedAt: number;
+  isBot?: boolean;
 }
 
 export interface MultiplayerPlayer extends MultiplayerSeat {
@@ -63,9 +64,15 @@ export interface MultiplayerGameState {
     guardTarget?: number;
     lastGuardTarget?: number;
     wolfVotes: Record<string, number>;
+    wolfVoteTurnIndex?: number;
+    wolfTieSeats?: number[];
+    wolfTargetConfirmedAt?: number;
     wolfTarget?: number;
     wolfTargets?: number[];
     bigBadWolfRecruitVotes?: Record<string, number>;
+    bigBadWolfRecruitTurnIndex?: number;
+    bigBadWolfRecruitTieSeats?: number[];
+    bigBadWolfRecruitConfirmedAt?: number;
     bigBadWolfRecruitTarget?: number;
     witchSave?: boolean;
     witchPoison?: number;
@@ -115,9 +122,11 @@ export interface MultiplayerRoom {
 export type MultiplayerAction =
   | { type: "START_GAME"; clientId: string }
   | { type: "LEAVE_ROOM"; clientId: string }
+  | { type: "ADD_BOT"; clientId: string; count?: number }
+  | { type: "KICK_PLAYER"; clientId: string; targetClientId: string }
   | { type: "ACK_ROLE"; clientId: string }
   | { type: "CHAT"; clientId: string; content: string }
-  | { type: "UPDATE_ROLE_CONFIG"; clientId: string; roles: Role[]; preset?: MultiplayerRolePreset }
+  | { type: "UPDATE_ROLE_CONFIG"; clientId: string; roles: Role[]; preset?: MultiplayerRolePreset; playerCount?: number }
   | { type: "NIGHT_ACTION"; clientId: string; targetSeat: number | null; secondTargetSeat?: number | null; witchAction?: "save" | "poison" | "pass" }
   | { type: "HUNTER_SHOOT"; clientId: string; targetSeat: number | null }
   | { type: "START_VOTE"; clientId: string }
