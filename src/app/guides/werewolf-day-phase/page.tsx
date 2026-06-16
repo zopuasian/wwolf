@@ -9,7 +9,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingDialogueExamples, type LandingDialogueExample } from "@/components/seo/landing/LandingDialogueExamples";
 
 export const metadata: Metadata = {
-  title: "Werewolf Day Phase Guide: Discussion, Voting & Strategy | Wolfcha",
+  title: "Werewolf Day Phase Guide: Discussion, Voting & Strategy | Wolves House",
   description:
     "Master the Werewolf day phase with our complete guide. Learn discussion strategies, voting tactics, sheriff elections, speech patterns, and how to identify wolves through behavior analysis.",
   keywords: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     canonical: "https://wolf-cha.com/guides/werewolf-day-phase",
   },
   openGraph: {
-    title: "Werewolf Day Phase Guide: Discussion & Voting Strategy | Wolfcha",
+    title: "Werewolf Day Phase Guide: Discussion & Voting Strategy | Wolves House",
     description:
       "Complete guide to the Werewolf day phase - discussion tactics, voting strategies, sheriff elections, and how to identify wolves.",
     url: "https://wolf-cha.com/guides/werewolf-day-phase",
@@ -41,8 +41,8 @@ const articleJsonLd = {
   headline: "Werewolf Day Phase Guide: Discussion, Voting & Strategy",
   description: "Complete guide to the Werewolf day phase including discussion strategies, voting tactics, and behavioral analysis.",
   image: "https://wolf-cha.com/og-image.png",
-  author: { "@type": "Organization", name: "Wolfcha", url: "https://wolf-cha.com" },
-  publisher: { "@type": "Organization", name: "Wolfcha", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
+  author: { "@type": "Organization", name: "Wolves House", url: "https://wolf-cha.com" },
+  publisher: { "@type": "Organization", name: "Wolves House", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
   datePublished: "2024-01-15",
   dateModified: new Date().toISOString().split("T")[0],
   mainEntityOfPage: { "@type": "WebPage", "@id": "https://wolf-cha.com/guides/werewolf-day-phase" },
@@ -134,7 +134,7 @@ export default function WerewolfDayPhasePage() {
             <div className="relative">
               {/* Progress line */}
               <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-amber-500/30 hidden md:block" />
-              
+
               <div className="space-y-6">
                 <div className="flex gap-4 md:gap-6">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold z-10">1</div>
@@ -517,7 +517,7 @@ export default function WerewolfDayPhasePage() {
             Put Your Skills to the Test
           </h2>
           <p className="text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-            The best way to improve at Werewolf is through practice. Play against AI opponents in Wolfcha 
+            The best way to improve at Werewolf is through practice. Play against AI opponents in Wolves House
             and experience realistic discussions, accusations, and voting without needing to gather a group.
           </p>
           <Link href="/" className="inline-block rounded-full bg-[var(--color-gold)] px-8 py-4 font-bold text-black hover:bg-[var(--color-gold-dark)]">

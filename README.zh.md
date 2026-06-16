@@ -1,9 +1,9 @@
 [English](./README.md) | [简体中文](./README.zh.md)
 
-# Wolfcha (猹杀)
+# Wolves House (猹杀)
 
 <div align="center">
-  <img src="public/logo.png" alt="Wolfcha Logo" width="240" />
+  <img src="public/logo.png" alt="Wolves House Logo" width="240" />
   <h3>和朋友在线玩狼人杀 - 真人玩家、隐藏身份、实时博弈</h3>
   <p>
     <a href="https://masoi.nguynchupanh.com">在线体验</a>
@@ -19,7 +19,7 @@
     </td>
     <td>
       <strong>ZenMux</strong><br/>
-      曾为 Wolfcha 早期 AI 版本提供模型路由与编排支持。
+      曾为 Wolves House 早期 AI 版本提供模型路由与编排支持。
     </td>
   </tr>
   <tr>
@@ -28,7 +28,7 @@
     </td>
     <td>
       <strong>MiniMax</strong><br/>
-      Wolfcha 最早的 AI 版本曾由 MiniMax LLM 与 TTS 能力驱动。
+      Wolves House 最早的 AI 版本曾由 MiniMax LLM 与 TTS 能力驱动。
     </td>
   </tr>
   <tr>
@@ -44,13 +44,13 @@
 
 ---
 
-> 说明：Wolfcha 最初是一个 AI 原生狼人杀实验。现在的主体验已经重构为真人在线联机版，不再使用 AI 玩家补位。
+> 说明：Wolves House 最初是一个 AI 原生狼人杀实验。现在的主体验已经重构为真人在线联机版，不再使用 AI 玩家补位。
 
 ## 📖 项目背景
 
-Wolfcha 是一款受狼人杀启发的社交推理游戏。玩家可以从不同设备加入同一个在线房间，获得隐藏身份，在白天发言、欺骗、推理、投票，在夜晚执行各自阵营或角色的行动。
+Wolves House 是一款受狼人杀启发的社交推理游戏。玩家可以从不同设备加入同一个在线房间，获得隐藏身份，在白天发言、欺骗、推理、投票，在夜晚执行各自阵营或角色的行动。
 
-新版保留了原本的 Wolfcha 氛围：羊皮纸大厅、红色印章入场、复古头像、身份揭示卡片、事件提示，以及天黑天亮时的眨眼淡入淡出动画。核心玩法则已经改为真人玩家共同在线游玩。
+新版保留了原本的 Wolves House 氛围：羊皮纸大厅、红色印章入场、复古头像、身份揭示卡片、事件提示，以及天黑天亮时的眨眼淡入淡出动画。核心玩法则已经改为真人玩家共同在线游玩。
 
 ## ✨ 核心亮点
 

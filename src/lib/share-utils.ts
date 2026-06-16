@@ -292,7 +292,7 @@ export function generateAnalysisHTML(data: GameAnalysisData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wolfcha 复盘报告 - ${personalStats.userName}</title>
+  <title>Wolves House 复盘报告 - ${personalStats.userName}</title>
   <style>
     :root {
       --color-gold: #c5a059;
@@ -600,7 +600,7 @@ export function generateAnalysisHTML(data: GameAnalysisData): string {
 <body>
   <div class="container">
     <header class="header">
-      <h1>Wolfcha</h1>
+      <h1>Wolves House</h1>
       <div class="result-banner">${isVillageWin ? "好人阵营获胜" : "狼人阵营获胜"}</div>
     </header>
 

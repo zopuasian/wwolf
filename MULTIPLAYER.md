@@ -1,6 +1,6 @@
-# Wolfcha Online Multiplayer
+# Wolves House Online Multiplayer
 
-Wolfcha now runs as an online human-vs-human Werewolf game on the root route `/`.
+Wolves House now runs as an online human-vs-human Werewolf game on the root route `/`.
 
 The multiplayer build uses real-player seats by default. Hosts may explicitly add adaptive test bots from Room Settings; bots never join a room automatically. The server only returns the information each viewer is allowed to know.
 
@@ -126,7 +126,7 @@ The game resolves deaths, role effects, and win conditions. If the game continue
 
 ## Chat Visibility
 
-Wolfcha separates chat by phase and team:
+Wolves House separates chat by phase and team:
 
 - Day chat is public to all players.
 - Wolf night chat is visible only to wolves.

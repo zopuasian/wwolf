@@ -69,7 +69,7 @@ export const baseSeats: LandingAiSeat[] = [
 ];
 
 export const hubLinks: LandingRelatedLink[] = [
-  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolfcha is and why solo vs AI works." },
+  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolves House is and why solo vs AI works." },
   { href: "/how-to-play", label: "How to Play", description: "A quick rules overview for solo play." },
   { href: "/ai-models", label: "AI Models", description: "The model arena and how different models behave." },
   { href: "/features", label: "Features", description: "Voice acting, classic roles, and more." },

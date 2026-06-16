@@ -10,13 +10,13 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingAiSeats } from "@/components/seo/landing/LandingAiSeats";
 
 export const metadata: Metadata = {
-  title: "Werewolf for Beginners: Learn to Play in 5 Minutes | Wolfcha",
+  title: "Werewolf for Beginners: Learn to Play in 5 Minutes | Wolves House",
   description:
     "New to Werewolf? Learn the basics in 5 minutes with our beginner-friendly guide. Understand roles, phases, voting, and start playing immediately.",
   keywords: ["werewolf for beginners", "learn werewolf", "werewolf beginner guide", "how to play werewolf first time", "werewolf tutorial"],
   alternates: { canonical: "https://wolf-cha.com/guides/werewolf-for-beginners" },
   openGraph: {
-    title: "Werewolf for Beginners: Start Playing in 5 Minutes | Wolfcha",
+    title: "Werewolf for Beginners: Start Playing in 5 Minutes | Wolves House",
     description: "The simplest Werewolf guide for new players. Learn roles, phases, and basic strategy.",
     url: "https://wolf-cha.com/guides/werewolf-for-beginners",
     type: "article",
@@ -48,10 +48,10 @@ const sampleSeats = [
 const faqItems = [
   { question: "How long does a game take?", answer: "A typical game lasts 15-30 minutes. Shorter with fewer players, longer with experienced groups." },
   { question: "What if I don't know what to say?", answer: "Start by observing. Ask questions like 'Why do you think that?' or share gut feelings about suspicious players." },
-  { question: "What if I get killed early?", answer: "It happens! Watch how the game unfolds to learn. In Wolfcha, you can immediately start a new game." },
+  { question: "What if I get killed early?", answer: "It happens! Watch how the game unfolds to learn. In Wolves House, you can immediately start a new game." },
   { question: "Is it okay to lie?", answer: "If you're a werewolf, yes! Villagers generally tell the truth but may hide their role for safety." },
   { question: "What's the easiest role?", answer: "Villager is easiest - just observe and vote. Seer and Werewolf are more challenging." },
-  { question: "Can I play Werewolf alone?", answer: "Yes! Wolfcha lets you play against AI opponents, perfect for learning without pressure." },
+  { question: "Can I play Werewolf alone?", answer: "Yes! Wolves House lets you play against AI opponents, perfect for learning without pressure." },
 ];
 
 const relatedLinks = [

@@ -8,11 +8,11 @@ import { defaultLocale, localeToHtmlLang } from "@/i18n/config";
 
 export const metadata: Metadata = {
   title: {
-    default: "Wolfcha Online Werewolf",
-    template: "%s | Wolfcha",
+    default: "Wolves House Online Werewolf",
+    template: "%s | Wolves House",
   },
   description: "Create a private room and play Werewolf online with friends.",
-  applicationName: "Wolfcha",
+  applicationName: "Wolves House",
   keywords: [
     "online werewolf",
     "multiplayer werewolf",
@@ -27,10 +27,10 @@ export const metadata: Metadata = {
     "推理游戏",
   ],
   openGraph: {
-    title: "Wolfcha Online Werewolf",
+    title: "Wolves House Online Werewolf",
     description: "Create a private room and play Werewolf online with friends.",
     type: "website",
-    siteName: "Wolfcha",
+    siteName: "Wolves House",
     locale: localeToHtmlLang[defaultLocale],
     url: "https://wolf-cha.com",
     images: [
@@ -38,13 +38,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Wolfcha Online Werewolf",
+        alt: "Wolves House Online Werewolf",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wolfcha Online Werewolf",
+    title: "Wolves House Online Werewolf",
     description: "Create a private room and play Werewolf online with friends.",
     images: ["/og-image.png"],
   },

@@ -10,7 +10,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingDialogueExamples, type LandingDialogueExample } from "@/components/seo/landing/LandingDialogueExamples";
 
 export const metadata: Metadata = {
-  title: "Witch Strategy Guide: Master the Potions in Werewolf | Wolfcha",
+  title: "Witch Strategy Guide: Master the Potions in Werewolf | Wolves House",
   description:
     "Complete Witch strategy guide for Werewolf. Learn when to save, when to poison, potion timing, coordination with Seer, and avoid common mistakes that waste your powerful abilities.",
   keywords: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     canonical: "https://wolf-cha.com/guides/witch-strategy",
   },
   openGraph: {
-    title: "Witch Strategy Guide: Master Your Potions | Wolfcha",
+    title: "Witch Strategy Guide: Master Your Potions | Wolves House",
     description: "Learn optimal Witch strategy - when to save with antidote, when to poison, and how to maximize your impact on the game.",
     url: "https://wolf-cha.com/guides/witch-strategy",
     type: "article",
@@ -40,8 +40,8 @@ const articleJsonLd = {
   headline: "Witch Strategy Guide: Master the Potions in Werewolf",
   description: "Complete strategy guide for playing the Witch role in Werewolf, including potion timing, save decisions, and poison targets.",
   image: "https://wolf-cha.com/og-image.png",
-  author: { "@type": "Organization", name: "Wolfcha", url: "https://wolf-cha.com" },
-  publisher: { "@type": "Organization", name: "Wolfcha", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
+  author: { "@type": "Organization", name: "Wolves House", url: "https://wolf-cha.com" },
+  publisher: { "@type": "Organization", name: "Wolves House", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
   datePublished: "2024-01-15",
   dateModified: new Date().toISOString().split("T")[0],
 };
@@ -69,7 +69,7 @@ const dialogueExamples: LandingDialogueExample[] = [
 
 const faqItems = [
   { question: "Should I save on Night 1?", answer: "Often yes! Night 1 saves are valuable because: (1) you deny the wolves a kill, (2) the saved player owes you, (3) you learn who wolves targeted (potential Seer/leader). However, if the target seems suspicious, consider passing." },
-  { question: "Can the Witch save herself?", answer: "In most rulesets, yes - if you're the wolf target, you can use your antidote on yourself. However, some competitive variants prohibit self-saving. Check your game's rules. In Wolfcha, self-saving is allowed." },
+  { question: "Can the Witch save herself?", answer: "In most rulesets, yes - if you're the wolf target, you can use your antidote on yourself. However, some competitive variants prohibit self-saving. Check your game's rules. In Wolves House, self-saving is allowed." },
   { question: "When should I use my poison?", answer: "Use poison when: (1) Seer confirmed a wolf but voting failed, (2) you're highly confident someone is wolf, (3) late game when it's now-or-never. Never poison on suspicion alone early game." },
   { question: "Can I use both potions in one night?", answer: "No, in standard rules you can only use ONE potion per night - either save OR poison, not both. This prevents the overpowered combo of saving and killing in the same night." },
   { question: "What if I poison the wrong person?", answer: "Poisoning a villager is devastating - you've essentially helped the wolves. This is why poison should only be used when you're very confident. If you make this mistake, you can still contribute through day discussions." },

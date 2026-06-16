@@ -542,12 +542,12 @@ export function LandingContent() {
           <Link href="/" className="flex items-center gap-3">
             <Image
               src="/brand/wolfcha-favicon.svg"
-              alt="Wolfcha"
+              alt="Wolves House"
               width={32}
               height={32}
             />
             <span className="font-serif text-xl font-bold tracking-[0.2em] text-[var(--text-primary)]">
-              WOLFCHA
+              WOLVES HOUSE
             </span>
           </Link>
           <div className="hidden items-center gap-8 text-sm font-medium text-[var(--text-secondary)] md:flex">
@@ -652,7 +652,7 @@ export function LandingContent() {
               rel="noopener noreferrer"
             >
               <img
-                alt="Wolfcha - Single-player Werewolf where AI models battle it out | Product Hunt"
+                alt="Wolves House - Single-player Werewolf where AI models battle it out | Product Hunt"
                 width="250"
                 height="54"
                 src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1069557&theme=light&t=1769674895697"
@@ -949,18 +949,18 @@ export function LandingContent() {
           <div className="flex items-center gap-3 opacity-80">
             <Image
               src="/brand/wolfcha-favicon.svg"
-              alt="Wolfcha"
+              alt="Wolves House"
               width={32}
               height={32}
               className="brightness-200 grayscale"
             />
             <span className="font-serif font-bold tracking-[0.3em]">
-              WOLFCHA
+              WOLVES HOUSE
             </span>
           </div>
           <div className="text-center text-sm opacity-50">
             <p>{t("seo.footer.slogan")}</p>
-            <p className="mt-1 font-mono">© 2024 Wolfcha Project. Open Source.</p>
+            <p className="mt-1 font-mono">© 2024 Wolves House Project. Open Source.</p>
           </div>
           <div className="flex gap-6 opacity-60">
             <a

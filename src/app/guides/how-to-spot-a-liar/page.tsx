@@ -8,7 +8,7 @@ import { LandingFaq } from "@/components/seo/landing/LandingFaq";
 import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLinks";
 
 export const metadata: Metadata = {
-  title: "How to Spot a Liar in Werewolf: Deception Detection | Wolfcha",
+  title: "How to Spot a Liar in Werewolf: Deception Detection | Wolves House",
   description: "Learn to detect lies in Werewolf. Master behavioral tells, speech patterns, and logical inconsistencies to identify werewolves.",
   keywords: ["spot a liar werewolf", "detect lies mafia", "werewolf tells"],
   alternates: { canonical: "https://wolf-cha.com/guides/how-to-spot-a-liar" },

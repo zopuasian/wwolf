@@ -24,8 +24,8 @@ export function MarketingNav() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <img src="/brand/wolfcha-favicon.svg" alt="Wolfcha" className="h-8 w-8" />
-            <span className="font-serif text-xl font-bold text-[var(--color-wolf)] tracking-tight">Wolfcha</span>
+            <img src="/brand/wolfcha-favicon.svg" alt="Wolves House" className="h-8 w-8" />
+            <span className="font-serif text-xl font-bold text-[var(--color-wolf)] tracking-tight">Wolves House</span>
           </Link>
         </div>
 

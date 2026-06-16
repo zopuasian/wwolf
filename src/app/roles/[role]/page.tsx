@@ -55,7 +55,7 @@ export async function generateMetadata({
   }
 
   const canonical = `https://wolf-cha.com/roles/${data.key}`;
-  const title = `${data.roleName} Role Guide — AI Werewolf (Mafia) | Wolfcha`;
+  const title = `${data.roleName} Role Guide — AI Werewolf (Mafia) | Wolves House`;
 
   return {
     title,
@@ -73,7 +73,7 @@ export async function generateMetadata({
           url: "https://wolf-cha.com/og-image.png",
           width: 1200,
           height: 630,
-          alt: "Wolfcha - AI Werewolf Game",
+          alt: "Wolves House - AI Werewolf Game",
         },
       ],
     },
@@ -141,7 +141,7 @@ export default async function RoleLandingPage({
       <LandingSection
         id="ai-seats"
         title="Example AI seats (what a table can feel like)"
-        subtitle="Wolfcha is designed for solo play: each other seat is an AI opponent with a different style."
+        subtitle="Wolves House is designed for solo play: each other seat is an AI opponent with a different style."
       >
         <LandingAiSeats seats={data.seats} />
       </LandingSection>

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Wolfcha - AI狼人杀｜一个人玩的沉浸式狼人杀游戏",
+    "title": "Wolves House - AI狼人杀｜一个人玩的沉浸式狼人杀游戏",
     "description": "免费在线AI狼人杀游戏，一个人也能玩！多款顶级AI大模型（DeepSeek、Qwen、Kimi、Gemini）扮演其他玩家，带语音旁白的单人沉浸式狼人杀推理游戏。"
   },
   "locale": {
@@ -58,7 +58,7 @@
         "title": "新年快乐",
         "subtitle": "愿你新岁顺遂，局局高光。",
         "line1": "活动期间每日登录可领取 10 把新春额度，开局将优先消耗。",
-        "line2": "也想真诚告诉你：新年维护结束后，Wolfcha 可能会因为运营压力暂停维护。",
+        "line2": "也想真诚告诉你：新年维护结束后，Wolves House 可能会因为运营压力暂停维护。",
         "line3": "谢谢你一路以来的支持与陪伴，也希望这段时间猹杀有陪你度过一些开心、放松的时刻。",
         "note": "活动时间：2月12日 - 2月17日（北京时间，18日零点结束）",
         "action": "收下祝福，继续对局"
@@ -77,16 +77,16 @@
       "title": "GitHub 项目"
     },
     "productHunt": {
-      "title": "来 Product Hunt 给 Wolfcha 投一票",
+      "title": "来 Product Hunt 给 Wolves House 投一票",
       "description": "如果你玩得开心，帮忙点个 Upvote，让更多人看见我们~",
       "hint": "约10s",
       "cta": "去投票",
-      "ariaLabel": "打开 Wolfcha 的 Product Hunt 页面（投票）"
+      "ariaLabel": "打开 Wolves House 的 Product Hunt 页面（投票）"
     },
     "sponsor": {
       "title": "成为赞助商",
-      "subtitle": "你的支持会直接帮助 Wolfcha 跑得更稳、让更多人可以免费玩到。",
-      "description": "Wolfcha 是一个公益性质的 AI 狼人杀项目。我们把成本主要花在模型调用、语音合成、服务器与内容生产上。如果你愿意帮我们一把，无论支持多少、以什么形式，我们都会非常感激。",
+      "subtitle": "你的支持会直接帮助 Wolves House 跑得更稳、让更多人可以免费玩到。",
+      "description": "Wolves House 是一个公益性质的 AI 狼人杀项目。我们把成本主要花在模型调用、语音合成、服务器与内容生产上。如果你愿意帮我们一把，无论支持多少、以什么形式，我们都会非常感激。",
       "items": {
         "credits": "模型额度 / 算力 / 服务器资源",
         "media": "语音、音效、立绘等素材支持",
@@ -107,8 +107,8 @@
       },
       "copySuccess": "已复制邮箱",
       "copyFallback": "邮箱地址",
-      "mailSubject": "Wolfcha 赞助合作",
-      "mailBody": "你好，我对 Wolfcha 项目很感兴趣，希望能够提供以下支持：\n\n-（模型额度/算力）\n-（语音/音效资源）\n-（设计/产品协作）\n-（其他）\n\n我的联系方式：\n\n"
+      "mailSubject": "Wolves House 赞助合作",
+      "mailBody": "你好，我对 Wolves House 项目很感兴趣，希望能够提供以下支持：\n\n-（模型额度/算力）\n-（语音/音效资源）\n-（设计/产品协作）\n-（其他）\n\n我的联系方式：\n\n"
     },
     "settings": "设置",
     "tutorial": "玩法教学",
@@ -201,13 +201,13 @@
     "description": "调整偏好并导出日志",
     "about": {
       "title": "关于我们",
-      "description": "了解 Wolfcha",
-      "appName": "Wolfcha（猹人杀）",
+      "description": "了解 Wolves House",
+      "appName": "Wolves House（猹人杀）",
       "version": "版本号：v{version}",
       "group": {
         "title": "加入用户群",
         "description": "扫码入群，反馈问题与建议",
-        "alt": "Wolfcha 用户群",
+        "alt": "Wolves House 用户群",
         "missing": "未找到群组图片（public/group.png）"
       },
       "back": "返回设置",
@@ -353,7 +353,7 @@
       "q3": "游戏使用了哪些 AI 模型？",
       "a3": "我们使用 DeepSeek V3.2、Qwen3-235B、Kimi K2、Gemini 3 Flash 和 ByteDance Seed 1.8。每个模型都为游戏带来了不同的优势。",
       "q4": "游戏是免费的吗？",
-      "a4": "是的，Wolfcha 是完全免费的。访问 wolf-cha.com 即可立即开始。",
+      "a4": "是的，Wolves House 是完全免费的。访问 wolf-cha.com 即可立即开始。",
       "q5": "有哪些角色？",
       "a5": "经典角色包括狼人、预言家、女巫、猎人、守卫和村民。角色配置根据人数（8-12人）有所不同。"
     },
@@ -363,7 +363,7 @@
       "button": "立即开始"
     },
     "footer": {
-      "slogan": "Wolfcha — AI 狼人杀的最佳体验"
+      "slogan": "Wolves House — AI 狼人杀的最佳体验"
     }
   },
   "difficultySelector": {

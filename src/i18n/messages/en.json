@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Wolfcha | AI Werewolf - Play Werewolf with AI Online",
+    "title": "Wolves House | AI Werewolf - Play Werewolf with AI Online",
     "description": "Play Werewolf with AI opponents online. The ultimate single-player social deduction game featuring DeepSeek, Qwen, Kimi & Gemini AI models with voice acting."
   },
   "locale": {
@@ -58,8 +58,8 @@
         "title": "Happy Lunar New Year",
         "subtitle": "Wishing you luck and great reads in every match.",
         "line1": "During the event, sign in daily to receive 10 Spring quota. They are consumed first when a match starts.",
-        "line2": "We also want to be honest: after the Lunar New Year maintenance window, we may have to pause Wolfcha due to operational pressure.",
-        "line3": "Thank you for being with us all this way. We hope Wolfcha has kept you company through some joyful and relaxing moments.",
+        "line2": "We also want to be honest: after the Lunar New Year maintenance window, we may have to pause Wolves House due to operational pressure.",
+        "line3": "Thank you for being with us all this way. We hope Wolves House has kept you company through some joyful and relaxing moments.",
         "note": "Event window: Feb 12 - Feb 17 (Asia/Shanghai, ends at 00:00 on Feb 18)",
         "action": "Continue to Match"
       },
@@ -77,16 +77,16 @@
       "title": "GitHub Project"
     },
     "productHunt": {
-      "title": "Vote for Wolfcha on Product Hunt",
+      "title": "Vote for Wolves House on Product Hunt",
       "description": "If you enjoyed this game, an upvote helps a lot and takes only a moment.",
       "hint": "~10s",
       "cta": "UPVOTE",
-      "ariaLabel": "Open Wolfcha on Product Hunt (vote)"
+      "ariaLabel": "Open Wolves House on Product Hunt (vote)"
     },
     "sponsor": {
       "title": "Become a sponsor",
-      "subtitle": "Your support keeps Wolfcha running smoothly and free for everyone.",
-      "description": "Wolfcha is a community-driven AI Werewolf project. Our costs go toward AI models, voice synthesis, servers, and content creation. Any support—big or small—means the world to us.",
+      "subtitle": "Your support keeps Wolves House running smoothly and free for everyone.",
+      "description": "Wolves House is a community-driven AI Werewolf project. Our costs go toward AI models, voice synthesis, servers, and content creation. Any support—big or small—means the world to us.",
       "items": {
         "credits": "Model credits / compute / server resources",
         "media": "Voice, sound effects, character art assets",
@@ -107,8 +107,8 @@
       },
       "copySuccess": "Email copied",
       "copyFallback": "Email address",
-      "mailSubject": "Wolfcha sponsorship inquiry",
-      "mailBody": "Hi, I'm interested in supporting Wolfcha and would like to offer help in the following ways:\n\n- (Model credits / compute)\n- (Voice / SFX assets)\n- (Design / product collaboration)\n- (Other)\n\nMy contact info:\n\n"
+      "mailSubject": "Wolves House sponsorship inquiry",
+      "mailBody": "Hi, I'm interested in supporting Wolves House and would like to offer help in the following ways:\n\n- (Model credits / compute)\n- (Voice / SFX assets)\n- (Design / product collaboration)\n- (Other)\n\nMy contact info:\n\n"
     },
     "settings": "Settings",
     "tutorial": "How to play",
@@ -201,13 +201,13 @@
     "description": "Adjust preferences and export logs",
     "about": {
       "title": "About",
-      "description": "Learn about Wolfcha",
-      "appName": "Wolfcha",
+      "description": "Learn about Wolves House",
+      "appName": "Wolves House",
       "version": "Version: v{version}",
       "group": {
         "title": "Join the community",
         "description": "Scan to join and share feedback",
-        "alt": "Wolfcha community group",
+        "alt": "Wolves House community group",
         "missing": "Group image not found (public/group.png)"
       },
       "back": "Back to settings",
@@ -353,7 +353,7 @@
       "q3": "Which AI models power the game?",
       "a3": "We use DeepSeek V3.2, Qwen3-235B, Kimi K2, Gemini 3 Flash, and ByteDance Seed 1.8. Each brings different strengths to the game.",
       "q4": "Is it free to play?",
-      "a4": "Yes, Wolfcha is free to play. Start immediately at wolf-cha.com.",
+      "a4": "Yes, Wolves House is free to play. Start immediately at wolf-cha.com.",
       "q5": "What roles are available?",
       "a5": "Classic roles include Werewolf, Seer, Witch, Hunter, Guard, and Villager. Role composition varies by player count (8-12)."
     },
@@ -363,7 +363,7 @@
       "button": "Play Now"
     },
     "footer": {
-      "slogan": "Wolfcha — The best way to play Werewolf with AI"
+      "slogan": "Wolves House — The best way to play Werewolf with AI"
     }
   },
   "difficultySelector": {
@@ -2073,7 +2073,7 @@
       "wechatPayHint": "WeChat/Alipay (¥2/game) - contact developer",
       "contactDeveloper": "Contact",
       "wechatQrTitle": "Developer WeChat",
-      "wechatQrDescription": "Scan to add developer on WeChat, note 'Wolfcha credits'",
+      "wechatQrDescription": "Scan to add developer on WeChat, note 'Wolves House credits'",
       "longPressToSave": "Long press to save image",
       "pricePerGame": "${price} per game",
       "quantity": "Quantity",

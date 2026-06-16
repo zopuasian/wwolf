@@ -9,7 +9,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingAiSeats } from "@/components/seo/landing/LandingAiSeats";
 
 export const metadata: Metadata = {
-  title: "How to Play Werewolf with AI: Solo Play Guide | Wolfcha",
+  title: "How to Play Werewolf with AI: Solo Play Guide | Wolves House",
   description: "Learn how to play Werewolf with AI opponents. Practice strategies, experience unique AI personalities, and enjoy the game anytime without needing friends.",
   keywords: ["play werewolf with ai", "werewolf ai opponents", "solo werewolf", "werewolf practice", "ai werewolf game"],
   alternates: { canonical: "https://wolf-cha.com/guides/how-to-play-werewolf-with-ai" },

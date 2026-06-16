@@ -1267,7 +1267,7 @@ export function WelcomeScreen({
             </div>
 
             <div className="mt-2 text-center">
-              <div className="wc-contract-title">WOLFCHA</div>
+              <div className="wc-contract-title">WOLVES HOUSE</div>
               <div className="wc-contract-subtitle">{t("welcome.subtitle")}</div>
             </div>
 

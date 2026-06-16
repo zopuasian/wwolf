@@ -1,9 +1,9 @@
 [English](./README.md) | [简体中文](./README.zh.md)
 
-# Wolfcha
+# Wolves House
 
 <div align="center">
-  <img src="public/logo.png" alt="Wolfcha Logo" width="240" />
+  <img src="public/logo.png" alt="Wolves House Logo" width="240" />
   <h3>Online Werewolf for Friends - Human Players, Hidden Roles, Real-Time Deception</h3>
   <p>
     <a href="https://masoi.nguynchupanh.com">Play Online</a>
@@ -28,7 +28,7 @@
     </td>
     <td>
       <strong>MiniMax</strong><br/>
-      The original AI edition of Wolfcha was powered by MiniMax LLM and TTS.
+      The original AI edition of Wolves House was powered by MiniMax LLM and TTS.
     </td>
   </tr>
   <tr>
@@ -44,13 +44,13 @@
 
 ---
 
-> Note: Wolfcha began as an AI-native Werewolf experiment. The current main experience is online multiplayer. Rooms contain real players by default; a host may explicitly add adaptive test bots from Room Settings when they need to test or fill a private room.
+> Note: Wolves House began as an AI-native Werewolf experiment. The current main experience is online multiplayer. Rooms contain real players by default; a host may explicitly add adaptive test bots from Room Settings when they need to test or fill a private room.
 
 ## 📖 Background
 
-Wolfcha is a social deduction game inspired by Werewolf. Players join the same online room from different devices, receive secret roles, talk, bluff, accuse, vote, and survive through alternating nights and days.
+Wolves House is a social deduction game inspired by Werewolf. Players join the same online room from different devices, receive secret roles, talk, bluff, accuse, vote, and survive through alternating nights and days.
 
-The project keeps the original Wolfcha atmosphere: parchment lobby, red seal entry, retro portraits, role reveal cards, event messages, and the day/night eye-blink fade animation. The gameplay has been reworked so real players share the table online.
+The project keeps the original Wolves House atmosphere: parchment lobby, red seal entry, retro portraits, role reveal cards, event messages, and the day/night eye-blink fade animation. The gameplay has been reworked so real players share the table online.
 
 ## ✨ Core Features
 
@@ -94,7 +94,7 @@ The project keeps the original Wolfcha atmosphere: parchment lobby, red seal ent
 
 ### 5. Expanded Role Logic
 
-Wolfcha includes classic and advanced Werewolf roles, including Villager, Werewolf, Seer, Witch, Hunter, Guard, Cupid, Idiot, Prince, Diseased, Cursed, Wolf Cub, and Big Bad Wolf.
+Wolves House includes classic and advanced Werewolf roles, including Villager, Werewolf, Seer, Witch, Hunter, Guard, Cupid, Idiot, Prince, Diseased, Cursed, Wolf Cub, and Big Bad Wolf.
 
 Important rules implemented in the online version:
 

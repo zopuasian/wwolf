@@ -6,7 +6,7 @@ import { LandingHero } from "@/components/seo/landing/LandingHero";
 import { LandingSection } from "@/components/seo/landing/LandingSection";
 
 export const metadata: Metadata = {
-  title: "Werewolf Game Guides: Complete Strategy & Rules Hub | Wolfcha",
+  title: "Werewolf Game Guides: Complete Strategy & Rules Hub | Wolves House",
   description: "Comprehensive Werewolf game guides covering rules, strategies, role tactics, and tips for both beginners and advanced players. Master every aspect of the game.",
   keywords: ["werewolf guides", "werewolf strategy", "mafia game guides", "werewolf tips", "how to play werewolf"],
   alternates: { canonical: "https://wolf-cha.com/guides" },

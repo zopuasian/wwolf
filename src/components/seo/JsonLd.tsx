@@ -20,7 +20,7 @@ export function getGameJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "VideoGame",
-    name: "Wolfcha - AI Werewolf Game",
+    name: "Wolves House - AI Werewolf Game",
     alternateName: ["AI Werewolf", "猹杀", "AI狼人杀"],
     description:
       "Play Werewolf with AI opponents. A single-player social deduction game featuring multiple AI models including DeepSeek, Qwen, Kimi, and Gemini. Experience immersive gameplay with voice acting and strategic reasoning.",
@@ -38,7 +38,7 @@ export function getGameJsonLd() {
     },
     author: {
       "@type": "Organization",
-      name: "Wolfcha Team",
+      name: "Wolves House Team",
       url: "https://wolf-cha.com",
     },
     keywords:
@@ -57,7 +57,7 @@ export function getWebsiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Wolfcha",
+    name: "Wolves House",
     alternateName: "AI Werewolf Game",
     url: "https://wolf-cha.com",
     description:
@@ -74,7 +74,7 @@ export function getOrganizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Wolfcha",
+    name: "Wolves House",
     url: "https://wolf-cha.com",
     logo: "https://wolf-cha.com/logo.png",
     sameAs: ["https://github.com/oil-oil/wolfcha"],
@@ -104,7 +104,7 @@ export function getFAQJsonLd() {
         name: "Can I play Werewolf alone?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes! Wolfcha allows you to play Werewolf completely solo. All other players are controlled by different AI models, each with unique personalities and strategies.",
+          text: "Yes! Wolves House allows you to play Werewolf completely solo. All other players are controlled by different AI models, each with unique personalities and strategies.",
         },
       },
       {
@@ -112,15 +112,15 @@ export function getFAQJsonLd() {
         name: "Which AI models are used in the game?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Wolfcha features multiple AI models including DeepSeek V3.2, Qwen3-235B, Kimi K2, Gemini 3 Flash, and ByteDance Seed 1.8. Each model brings different reasoning styles to the game.",
+          text: "Wolves House features multiple AI models including DeepSeek V3.2, Qwen3-235B, Kimi K2, Gemini 3 Flash, and ByteDance Seed 1.8. Each model brings different reasoning styles to the game.",
         },
       },
       {
         "@type": "Question",
-        name: "Is Wolfcha free to play?",
+        name: "Is Wolves House free to play?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, Wolfcha is free to play. You can start playing immediately by visiting wolf-cha.com.",
+          text: "Yes, Wolves House is free to play. You can start playing immediately by visiting wolf-cha.com.",
         },
       },
       {

@@ -10,7 +10,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingDialogueExamples, type LandingDialogueExample } from "@/components/seo/landing/LandingDialogueExamples";
 
 export const metadata: Metadata = {
-  title: "Seer Strategy Guide: How to Play Seer in Werewolf | Wolfcha",
+  title: "Seer Strategy Guide: How to Play Seer in Werewolf | Wolves House",
   description:
     "Master the Seer role in Werewolf with our comprehensive strategy guide. Learn who to check, when to reveal, how to share information, and avoid common mistakes that get Seers killed.",
   keywords: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: "https://wolf-cha.com/guides/seer-strategy",
   },
   openGraph: {
-    title: "Seer Strategy Guide: Master the Most Powerful Village Role | Wolfcha",
+    title: "Seer Strategy Guide: Master the Most Powerful Village Role | Wolves House",
     description:
       "Complete Seer strategy guide for Werewolf - who to check, when to reveal, and how to lead the village to victory.",
     url: "https://wolf-cha.com/guides/seer-strategy",
@@ -42,8 +42,8 @@ const articleJsonLd = {
   headline: "Seer Strategy Guide: How to Play Seer in Werewolf",
   description: "Complete strategy guide for playing the Seer role in Werewolf, including check priorities, reveal timing, and information management.",
   image: "https://wolf-cha.com/og-image.png",
-  author: { "@type": "Organization", name: "Wolfcha", url: "https://wolf-cha.com" },
-  publisher: { "@type": "Organization", name: "Wolfcha", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
+  author: { "@type": "Organization", name: "Wolves House", url: "https://wolf-cha.com" },
+  publisher: { "@type": "Organization", name: "Wolves House", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
   datePublished: "2024-01-15",
   dateModified: new Date().toISOString().split("T")[0],
   mainEntityOfPage: { "@type": "WebPage", "@id": "https://wolf-cha.com/guides/seer-strategy" },
@@ -114,11 +114,11 @@ export default function SeerStrategyPage() {
           <div className="lg:col-span-2">
             <div className="prose prose-invert max-w-none">
               <p className="text-lg text-[var(--text-secondary)] leading-relaxed">
-                The Seer (also called Detective, Cop, or Investigator in Mafia variants) is the village team&apos;s most valuable role. 
+                The Seer (also called Detective, Cop, or Investigator in Mafia variants) is the village team&apos;s most valuable role.
                 Every night, you choose one player and learn their true alignment: <strong className="text-yellow-400">Werewolf</strong> or <strong className="text-blue-400">Villager</strong>.
               </p>
               <p className="text-[var(--text-secondary)] leading-relaxed">
-                This information is incredibly powerful - but it&apos;s only useful if you survive long enough to share it, 
+                This information is incredibly powerful - but it&apos;s only useful if you survive long enough to share it,
                 and if the village trusts you when you do. Wolves will hunt you relentlessly, and fake Seer claims can muddy the waters.
               </p>
             </div>
@@ -167,7 +167,7 @@ export default function SeerStrategyPage() {
         <div className="space-y-6">
           <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6">
             <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Check Priority Tiers</h3>
-            
+
             <div className="space-y-4">
               <div className="flex gap-4 p-4 rounded-lg bg-red-950/30 border border-red-500/20">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-400 font-bold">S</div>
@@ -255,7 +255,7 @@ export default function SeerStrategyPage() {
             <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
               <span className="text-green-400">✓</span> Good Times to Reveal
             </h3>
-            
+
             <div className="space-y-3">
               <div className="rounded-lg border border-green-500/20 bg-green-950/20 p-4">
                 <div className="font-semibold text-[var(--text-primary)] mb-1">You Found a Wolf</div>
@@ -283,7 +283,7 @@ export default function SeerStrategyPage() {
             <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
               <span className="text-red-400">✗</span> Bad Times to Reveal
             </h3>
-            
+
             <div className="space-y-3">
               <div className="rounded-lg border border-red-500/20 bg-red-950/20 p-4">
                 <div className="font-semibold text-[var(--text-primary)] mb-1">Day 1 with No Info</div>
@@ -398,7 +398,7 @@ export default function SeerStrategyPage() {
               </div>
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-3">
-              Tip: In Wolfcha, your check history is tracked automatically in the UI!
+              Tip: In Wolves House, your check history is tracked automatically in the UI!
             </p>
           </div>
         </div>
@@ -482,7 +482,7 @@ export default function SeerStrategyPage() {
             Practice Your Seer Skills
           </h2>
           <p className="text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-            The best Seers develop through experience. Play unlimited games as Seer against AI opponents in Wolfcha 
+            The best Seers develop through experience. Play unlimited games as Seer against AI opponents in Wolves House
             and perfect your check strategy, reveal timing, and information management.
           </p>
           <Link href="/" className="inline-block rounded-full bg-[var(--color-gold)] px-8 py-4 font-bold text-black hover:bg-[var(--color-gold-dark)]">

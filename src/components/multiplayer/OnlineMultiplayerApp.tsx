@@ -1190,7 +1190,7 @@ export function OnlineMultiplayerApp() {
         >
           <div className="wc-contract-borders" aria-hidden="true" />
           <div className="mt-2 text-center">
-            <div className="wc-contract-title">WOLFCHA</div>
+            <div className="wc-contract-title">WOLVES HOUSE</div>
             <div className="wc-contract-subtitle">The blood pact</div>
           </div>
           <div className="wc-mp-contract-oath">
@@ -1251,7 +1251,7 @@ export function OnlineMultiplayerApp() {
         <section className="relative z-10 wc-contract-paper w-full max-w-[460px]">
           <div className="wc-contract-borders" aria-hidden="true" />
           <div className="mt-2 text-center">
-            <div className="wc-contract-title">WOLFCHA</div>
+            <div className="wc-contract-title">WOLVES HOUSE</div>
             <div className="wc-contract-subtitle">Join room {room.code}</div>
           </div>
           <div className="mt-7 space-y-4">
@@ -1298,7 +1298,7 @@ export function OnlineMultiplayerApp() {
           <div className="wc-topbar__row-1 flex items-center justify-between w-full md:w-auto md:contents">
             <div className="wc-topbar__title">
               <WerewolfIcon size={22} className="text-[var(--color-blood)]" />
-              <span>WOLFCHA</span>
+              <span>WOLVES HOUSE</span>
             </div>
           </div>
           <div className="wc-topbar__info">

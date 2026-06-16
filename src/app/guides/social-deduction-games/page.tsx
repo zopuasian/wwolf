@@ -8,7 +8,7 @@ import { LandingFaq } from "@/components/seo/landing/LandingFaq";
 import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLinks";
 
 export const metadata: Metadata = {
-  title: "Social Deduction Games: The Complete Genre Guide | Wolfcha",
+  title: "Social Deduction Games: The Complete Genre Guide | Wolves House",
   description: "Explore social deduction games like Werewolf, Mafia, and more. Learn about the genre, popular titles, and why hidden role games are so engaging.",
   keywords: ["social deduction games", "hidden role games", "games like werewolf", "party deception games"],
   alternates: { canonical: "https://wolf-cha.com/guides/social-deduction-games" },

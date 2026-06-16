@@ -8,7 +8,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Play Werewolf Alone",
     tagline: "No party required. Just you and 11 AI opponents.",
     heroDescription:
-      "Want to play Werewolf but don't have a group? Wolfcha lets you experience the full social deduction game solo. Every other seat at the table is an AI opponent with a distinct personality, reasoning style, and agenda. Start a game in seconds—no scheduling, no waiting.",
+      "Want to play Werewolf but don't have a group? Wolves House lets you experience the full social deduction game solo. Every other seat at the table is an AI opponent with a distinct personality, reasoning style, and agenda. Start a game in seconds—no scheduling, no waiting.",
     problemsSolved: [
       "No friends available to play right now",
       "Can't gather enough people for a full game (8–12 players)",
@@ -17,7 +17,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       "Just want a quick game without social coordination",
     ],
     howItWorks: [
-      { step: "Open Wolfcha", description: "No download, no account required. Works in any modern browser." },
+      { step: "Open Wolves House", description: "No download, no account required. Works in any modern browser." },
       { step: "Choose your settings", description: "Pick game speed, voice acting preferences, and role distribution." },
       { step: "Get assigned a role", description: "You might be a Villager, Werewolf, Seer, Witch, Hunter, or Guard." },
       { step: "Play day and night phases", description: "Discuss, vote, and use abilities just like a real game." },
@@ -63,7 +63,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       { question: "How long does a solo game take?", answer: "Typically 15–30 minutes depending on your reading speed and game settings." },
       { question: "Do I need to create an account?", answer: "No account required. You can start playing immediately." },
       { question: "Can I choose my role?", answer: "Roles are assigned randomly to maintain game balance and surprise." },
-      { question: "What if I don't know the rules?", answer: "Wolfcha includes guidance and the AI narrator helps you through each phase." },
+      { question: "What if I don't know the rules?", answer: "Wolves House includes guidance and the AI narrator helps you through each phase." },
       { question: "Is it free to play?", answer: "Yes, basic play is free." },
     ],
     related: { hub: hubLinks, cluster: soloClusterLinks.filter((l) => l.href !== "/play-werewolf-alone") },
@@ -75,7 +75,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Play Werewolf with AI",
     tagline: "AI opponents that actually think, argue, and bluff.",
     heroDescription:
-      "Wolfcha puts you at a table with AI players powered by state-of-the-art language models. Each AI has a unique personality—some are aggressive accusers, others are careful analysts, and some are skilled manipulators. Experience Werewolf with opponents who actually reason.",
+      "Wolves House puts you at a table with AI players powered by state-of-the-art language models. Each AI has a unique personality—some are aggressive accusers, others are careful analysts, and some are skilled manipulators. Experience Werewolf with opponents who actually reason.",
     problemsSolved: [
       "Human players can be unpredictable or frustrating",
       "Want consistent, challenging opponents",
@@ -125,7 +125,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       },
     ],
     faqs: [
-      { question: "Which AI models power the opponents?", answer: "Wolfcha uses DeepSeek, Gemini, Qwen, Claude, and others. Each model brings different reasoning patterns." },
+      { question: "Which AI models power the opponents?", answer: "Wolves House uses DeepSeek, Gemini, Qwen, Claude, and others. Each model brings different reasoning patterns." },
       { question: "Can AI opponents actually bluff?", answer: "Yes! AI wolves will claim innocent roles, misdirect suspicion, and coordinate eliminations." },
       { question: "How do AI personalities work?", answer: "Each AI is assigned traits like calm, aggressive, empathetic. These influence how they communicate and vote." },
       { question: "Do AI players remember previous games?", answer: "Each game is independent. AI players don't remember past games." },
@@ -141,7 +141,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Werewolf Game with AI Opponents",
     tagline: "A full table of intelligent adversaries, ready when you are.",
     heroDescription:
-      "Experience the classic Werewolf (Mafia) game against 11 AI opponents. Each opponent has unique reasoning patterns, communication styles, and strategic tendencies. No human coordination needed—just open Wolfcha and start playing.",
+      "Experience the classic Werewolf (Mafia) game against 11 AI opponents. Each opponent has unique reasoning patterns, communication styles, and strategic tendencies. No human coordination needed—just open Wolves House and start playing.",
     problemsSolved: [
       "Need 8–12 players for a proper game",
       "Human players cancel or flake",
@@ -207,7 +207,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Solo Mafia Game",
     tagline: "The classic party game, playable alone.",
     heroDescription:
-      "Mafia (also known as Werewolf) is one of the greatest social deduction games ever created. But gathering 8–12 people is hard. Wolfcha solves this by letting you play the full Mafia experience solo, against AI opponents who argue, bluff, and vote just like humans.",
+      "Mafia (also known as Werewolf) is one of the greatest social deduction games ever created. But gathering 8–12 people is hard. Wolves House solves this by letting you play the full Mafia experience solo, against AI opponents who argue, bluff, and vote just like humans.",
     problemsSolved: [
       "Love Mafia but can't find players",
       "Party game with no party available",
@@ -216,7 +216,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       "Miss playing Mafia and want a quick fix",
     ],
     howItWorks: [
-      { step: "Load Wolfcha", description: "Works in any browser, no app download needed." },
+      { step: "Load Wolves House", description: "Works in any browser, no app download needed." },
       { step: "Start a game", description: "One click to launch a full 12-player Mafia match." },
       { step: "Get your role", description: "Mafia member, Civilian, or a special role like Detective." },
       { step: "Survive the nights", description: "Mafia kills at night; town debates and votes by day." },
@@ -273,7 +273,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Single Player Social Deduction Game",
     tagline: "Deduction, bluffing, and strategy—no group required.",
     heroDescription:
-      "Social deduction games like Werewolf, Mafia, and Among Us are built around reading people and managing information. Wolfcha brings this experience to single player by surrounding you with AI opponents who reason, suspect, and scheme.",
+      "Social deduction games like Werewolf, Mafia, and Among Us are built around reading people and managing information. Wolves House brings this experience to single player by surrounding you with AI opponents who reason, suspect, and scheme.",
     problemsSolved: [
       "Love social deduction but play alone",
       "Among Us requires lobbies and wait times",
@@ -282,7 +282,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       "Need a thinking game that's not chess or puzzles",
     ],
     howItWorks: [
-      { step: "Choose Wolfcha", description: "A social deduction game designed for one player." },
+      { step: "Choose Wolves House", description: "A social deduction game designed for one player." },
       { step: "Face AI opponents", description: "11 AI players with distinct personalities and strategies." },
       { step: "Deduce and deceive", description: "Use information, voting, and discussion to win." },
       { step: "Experience the genre", description: "All the tension of multiplayer, none of the coordination." },
@@ -296,7 +296,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     ],
     comparisonTable: [
       { feature: "Genre", traditional: "Multiplayer social deduction", wolfcha: "Single player social deduction" },
-      { feature: "Examples", traditional: "Among Us, Secret Hitler, Mafia", wolfcha: "Wolfcha (AI Werewolf)" },
+      { feature: "Examples", traditional: "Among Us, Secret Hitler, Mafia", wolfcha: "Wolves House (AI Werewolf)" },
       { feature: "Player requirement", traditional: "4–12 humans", wolfcha: "Just you" },
       { feature: "Social skill practice", traditional: "High", wolfcha: "High (vs AI)" },
       { feature: "Replayability", traditional: "Depends on group", wolfcha: "Unlimited" },
@@ -326,7 +326,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       { question: "What makes this a social deduction game?", answer: "Players have hidden roles with conflicting goals. Deduction, persuasion, and deception determine the winner." },
       { question: "How is this different from puzzle games?", answer: "Puzzle games have fixed solutions. Social deduction is dynamic—outcomes depend on persuasion and adapting." },
       { question: "Can AI opponents really bluff?", answer: "Yes. AI wolves lie, deflect suspicion, and coordinate kills. They play to win." },
-      { question: "Is this like Among Us?", answer: "Similar genre, different format. Among Us adds action; Wolfcha is pure discussion and voting." },
+      { question: "Is this like Among Us?", answer: "Similar genre, different format. Among Us adds action; Wolves House is pure discussion and voting." },
       { question: "How long is a game?", answer: "15–30 minutes typically. Shorter than most multiplayer social deduction." },
       { question: "Will I get better at social deduction?", answer: "Absolutely. Playing against AI helps you recognize patterns that transfer to human games." },
     ],
@@ -339,7 +339,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Werewolf Game No Friends Needed",
     tagline: "Finally play Werewolf without organizing a party.",
     heroDescription:
-      "You've heard Werewolf is amazing. But you need 8–12 friends who are free at the same time, and that's impossible to arrange. Wolfcha removes the social barrier—play the complete Werewolf experience solo, against AI opponents who provide a genuine challenge.",
+      "You've heard Werewolf is amazing. But you need 8–12 friends who are free at the same time, and that's impossible to arrange. Wolves House removes the social barrier—play the complete Werewolf experience solo, against AI opponents who provide a genuine challenge.",
     problemsSolved: [
       "Don't have a gaming group",
       "Friends aren't into social deduction games",
@@ -349,7 +349,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     ],
     howItWorks: [
       { step: "Forget scheduling", description: "No group chat, no polls, no cancellations." },
-      { step: "Open Wolfcha", description: "Browser-based, instant access, no barriers." },
+      { step: "Open Wolves House", description: "Browser-based, instant access, no barriers." },
       { step: "Play a real game", description: "11 AI opponents, full rules, authentic experience." },
       { step: "Learn and improve", description: "No judgment, no pressure, play at your own pace." },
       { step: "Enjoy whenever", description: "Morning, night, 5 minutes or 30—your choice." },
@@ -405,7 +405,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Practice Werewolf Online",
     tagline: "Sharpen your skills before game night.",
     heroDescription:
-      "Want to get better at Werewolf before playing with your group? Wolfcha is the perfect practice environment. Play against AI opponents who use real strategies, learn role mechanics, and develop your deduction skills—all without pressure.",
+      "Want to get better at Werewolf before playing with your group? Wolves House is the perfect practice environment. Play against AI opponents who use real strategies, learn role mechanics, and develop your deduction skills—all without pressure.",
     problemsSolved: [
       "New to Werewolf and want to learn",
       "Know the rules but want to improve strategy",
@@ -471,7 +471,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Learn Werewolf Strategy",
     tagline: "Master the game through AI-powered practice.",
     heroDescription:
-      "Werewolf rewards strategic thinking, social awareness, and information management. Wolfcha is the best way to learn these skills—play against AI opponents who demonstrate effective strategies, then develop your own through practice.",
+      "Werewolf rewards strategic thinking, social awareness, and information management. Wolves House is the best way to learn these skills—play against AI opponents who demonstrate effective strategies, then develop your own through practice.",
     problemsSolved: [
       "Know the rules but lose consistently",
       "Don't understand why good players win",
@@ -537,7 +537,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Werewolf Game in Browser",
     tagline: "No download. No app. Just open and play.",
     heroDescription:
-      "Wolfcha runs entirely in your web browser. No installation, no app store, no waiting. Open the site, click Play, and you're in a full Werewolf game with 11 AI opponents. Works on desktop, tablet, and mobile.",
+      "Wolves House runs entirely in your web browser. No installation, no app store, no waiting. Open the site, click Play, and you're in a full Werewolf game with 11 AI opponents. Works on desktop, tablet, and mobile.",
     problemsSolved: [
       "Don't want to download another app",
       "Limited storage on your device",
@@ -547,7 +547,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     ],
     howItWorks: [
       { step: "Open your browser", description: "Chrome, Safari, Firefox, Edge—any modern browser works." },
-      { step: "Visit Wolfcha", description: "Type the URL or click a link." },
+      { step: "Visit Wolves House", description: "Type the URL or click a link." },
       { step: "Click Play", description: "No account required. No setup wizard." },
       { step: "Game loads instantly", description: "Optimized for fast load times." },
       { step: "Play anywhere", description: "Same experience on any device." },
@@ -602,7 +602,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Free Werewolf Game Online",
     tagline: "Play unlimited games at no cost.",
     heroDescription:
-      "Wolfcha offers free access to the complete Werewolf experience. No paywall, no premium-only features for core gameplay, no ads interrupting your game. Just open the site and start playing against AI opponents—as many games as you want.",
+      "Wolves House offers free access to the complete Werewolf experience. No paywall, no premium-only features for core gameplay, no ads interrupting your game. Just open the site and start playing against AI opponents—as many games as you want.",
     problemsSolved: [
       "Don't want to pay for a casual game",
       "Hate pay-to-win mechanics",
@@ -611,7 +611,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       "Looking for free entertainment that's quality",
     ],
     howItWorks: [
-      { step: "Visit Wolfcha", description: "No payment information required." },
+      { step: "Visit Wolves House", description: "No payment information required." },
       { step: "Play immediately", description: "Full game access from the start." },
       { step: "No limits", description: "Play as many games as you want." },
       { step: "Optional support", description: "Premium features for those who want to support development." },
@@ -653,7 +653,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     ],
     faqs: [
       { question: "Is it really free?", answer: "Yes. Play unlimited games without paying. No tricks, no hidden costs." },
-      { question: "How does Wolfcha make money?", answer: "Optional premium features and supporter tiers for those who want extras or want to support development." },
+      { question: "How does Wolves House make money?", answer: "Optional premium features and supporter tiers for those who want extras or want to support development." },
       { question: "Will free features ever become paid?", answer: "Core gameplay will always be free. We're committed to that." },
       { question: "Are there ads?", answer: "No ads interrupt your gameplay. We believe ads ruin the experience." },
       { question: "What do premium features include?", answer: "Extra voice options, themes, and supporter badges. Nothing that affects gameplay balance." },
@@ -668,7 +668,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Online Werewolf Game",
     tagline: "Play classic Werewolf online with AI opponents anytime.",
     heroDescription:
-      "Looking for an online Werewolf game that starts instantly and still feels strategic? Wolfcha gives you the full social deduction loop in your browser: hidden roles, day debates, night actions, and tense final votes. You play as one seat, while 11 AI players handle the rest.",
+      "Looking for an online Werewolf game that starts instantly and still feels strategic? Wolves House gives you the full social deduction loop in your browser: hidden roles, day debates, night actions, and tense final votes. You play as one seat, while 11 AI players handle the rest.",
     problemsSolved: [
       "Want an online Werewolf game without organizing a group",
       "Need quick matches you can start any time",
@@ -677,7 +677,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       "Need a game that works on both desktop and mobile",
     ],
     howItWorks: [
-      { step: "Open Wolfcha in your browser", description: "No installation or launcher needed." },
+      { step: "Open Wolves House in your browser", description: "No installation or launcher needed." },
       { step: "Start a new online match", description: "Game setup takes seconds." },
       { step: "Receive your role", description: "Villager, Werewolf, Seer, Witch, Hunter, or Guard." },
       { step: "Play day/night cycles", description: "Debate, vote, and use role abilities like a real Werewolf table." },
@@ -718,10 +718,10 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       },
     ],
     faqs: [
-      { question: "Is this a real online Werewolf game?", answer: "Yes. Wolfcha includes full Werewolf mechanics: hidden roles, day discussion, night actions, and voting." },
+      { question: "Is this a real online Werewolf game?", answer: "Yes. Wolves House includes full Werewolf mechanics: hidden roles, day discussion, night actions, and voting." },
       { question: "Can I play online without friends?", answer: "Yes. You play solo against 11 AI opponents, so no group setup is needed." },
       { question: "How long is one online match?", answer: "Most games take around 15-30 minutes depending on settings and reading speed." },
-      { question: "Does it run on mobile browsers?", answer: "Yes. Wolfcha is optimized for modern mobile and desktop browsers." },
+      { question: "Does it run on mobile browsers?", answer: "Yes. Wolves House is optimized for modern mobile and desktop browsers." },
       { question: "Is this browser game free?", answer: "Yes, the core experience is free to play." },
       { question: "Can I improve at Werewolf by playing online here?", answer: "Absolutely. Repeated matches help you practice reads, claims, and vote control." },
     ],
@@ -734,7 +734,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Werewolf Game Online Free",
     tagline: "Free online Werewolf matches with full AI gameplay.",
     heroDescription:
-      "Wolfcha is a free online Werewolf game where you can play unlimited rounds in your browser. No download, no mandatory account, no match queue. Start a game immediately and face AI opponents who bluff, accuse, and adapt like real players.",
+      "Wolves House is a free online Werewolf game where you can play unlimited rounds in your browser. No download, no mandatory account, no match queue. Start a game immediately and face AI opponents who bluff, accuse, and adapt like real players.",
     problemsSolved: [
       "Need a free Werewolf game that still feels complete",
       "Don't want ad-heavy or paywalled social deduction apps",
@@ -800,7 +800,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     title: "Mafia Werewolf Game Online",
     tagline: "Play the Mafia/Werewolf social deduction format online, solo.",
     heroDescription:
-      "Mafia and Werewolf are two names for the same hidden-role party game. Wolfcha brings that format online for solo players: no host needed, no waiting room, and no scheduling. You still get all the essentials: deception, vote pressure, and high-stakes endgames.",
+      "Mafia and Werewolf are two names for the same hidden-role party game. Wolves House brings that format online for solo players: no host needed, no waiting room, and no scheduling. You still get all the essentials: deception, vote pressure, and high-stakes endgames.",
     problemsSolved: [
       "Searching for Mafia-style Werewolf gameplay online",
       "Can't gather a full party for classic Mafia nights",
@@ -809,7 +809,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
       "Prefer instant browser sessions over long setup",
     ],
     howItWorks: [
-      { step: "Open Wolfcha online", description: "No app installation required." },
+      { step: "Open Wolves House online", description: "No app installation required." },
       { step: "Start a Mafia/Werewolf match", description: "You join a 12-seat game instantly." },
       { step: "Play your hidden role", description: "Town, wolf, and power-role dynamics are preserved." },
       { step: "Debate and vote", description: "Push narratives, challenge claims, and read contradictions." },
@@ -851,7 +851,7 @@ export const soloLandingDataByKey: Record<SoloLandingKey, SoloLandingData> = {
     ],
     faqs: [
       { question: "Is Mafia and Werewolf the same game?", answer: "They are closely related versions of the same social deduction formula: hidden factions, day voting, and deception." },
-      { question: "Can I play Mafia-style Werewolf online solo?", answer: "Yes. Wolfcha is designed for solo matches against AI opponents." },
+      { question: "Can I play Mafia-style Werewolf online solo?", answer: "Yes. Wolves House is designed for solo matches against AI opponents." },
       { question: "Do I need a host or moderator?", answer: "No. The game handles phases, role actions, and results automatically." },
       { question: "Is this competitive enough for practice?", answer: "Yes. The AI table provides repeatable pressure scenarios for improving reads and bluff timing." },
       { question: "How long does an online Mafia/Werewolf game take?", answer: "Typical sessions are around 15-30 minutes." },

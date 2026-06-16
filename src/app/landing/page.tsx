@@ -9,7 +9,7 @@ import {
 } from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Wolfcha - AI Werewolf Game | AI狼人杀 | Play Werewolf with AI Online",
+  title: "Wolves House - AI Werewolf Game | AI狼人杀 | Play Werewolf with AI Online",
   description:
     "Play Werewolf with AI opponents online for free. The ultimate single-player social deduction game featuring DeepSeek, Qwen, Kimi & Gemini AI models with voice acting. 免费在线AI狼人杀游戏，一个人也能玩！",
   keywords: [
@@ -46,11 +46,11 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Wolfcha - AI Werewolf Game | AI狼人杀",
+    title: "Wolves House - AI Werewolf Game | AI狼人杀",
     description:
       "Play Werewolf with AI opponents. Single-player social deduction with DeepSeek, Qwen, Kimi & Gemini. 免费AI狼人杀，一个人也能玩！",
     url: "https://wolf-cha.com/landing",
-    siteName: "Wolfcha",
+    siteName: "Wolves House",
     locale: "en_US",
     type: "website",
     images: [
@@ -58,13 +58,13 @@ export const metadata: Metadata = {
         url: "https://wolf-cha.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Wolfcha - AI Werewolf Game",
+        alt: "Wolves House - AI Werewolf Game",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wolfcha - AI Werewolf Game | AI狼人杀",
+    title: "Wolves House - AI Werewolf Game | AI狼人杀",
     description:
       "Play Werewolf with AI opponents. Single-player social deduction game. 免费AI狼人杀！",
     images: ["https://wolf-cha.com/og-image.png"],

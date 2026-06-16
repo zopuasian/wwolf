@@ -32,7 +32,7 @@ export interface GameComparisonData {
   comparisonIntro: string;
   comparisonTable: Array<{ dimension: string; wolfcha: string; other: string }>;
   wolfchaAdvantages: string[];
-  whenToChooseWolfcha: string[];
+  whenToChooseWolvesHouse: string[];
   whenToChooseOther: string[];
   wolfchaDifferentiator: string;
   seats: LandingAiSeat[];
@@ -53,7 +53,7 @@ const baseSeats: LandingAiSeat[] = [
 ];
 
 const hubLinks: LandingRelatedLink[] = [
-  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolfcha is and why solo vs AI works." },
+  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolves House is and why solo vs AI works." },
   { href: "/how-to-play", label: "How to Play", description: "A quick rules overview for solo play." },
   { href: "/features", label: "Features", description: "Voice acting, AI arena, and more." },
   { href: "/ai-models", label: "AI Models", description: "Meet the AI personalities." },
@@ -75,9 +75,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Werewolf vs Town of Salem",
     tagline: "Classic social deduction showdown",
     heroDescription:
-      "Town of Salem and Werewolf share DNA — both are social deduction games about hidden roles. But they differ in platform, pacing, and solo options. Here's how Wolfcha compares for players who want Werewolf-style gameplay.",
+      "Town of Salem and Werewolf share DNA — both are social deduction games about hidden roles. But they differ in platform, pacing, and solo options. Here's how Wolves House compares for players who want Werewolf-style gameplay.",
     comparisonIntro:
-      "Town of Salem is a browser-based social deduction game with Mafia-style mechanics. It's been popular for years with a dedicated community. Wolfcha takes the classic Werewolf formula and adds AI opponents for solo play.",
+      "Town of Salem is a browser-based social deduction game with Mafia-style mechanics. It's been popular for years with a dedicated community. Wolves House takes the classic Werewolf formula and adds AI opponents for solo play.",
     comparisonTable: [
       { dimension: "Solo play", wolfcha: "Yes — designed for solo vs AI", other: "No — requires other players" },
       { dimension: "Player count", wolfcha: "8-12 (all AI except you)", other: "7-15 (all human)" },
@@ -95,7 +95,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "No toxic players or griefing",
       "Practice strategies risk-free",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You want to play alone or practice",
       "You prefer voice acting and atmosphere",
       "You want instant games without queue times",
@@ -110,12 +110,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "Solo play with AI opponents that actually reason and argue — not random decisions.",
     seats: baseSeats,
     faqs: [
-      { question: "Is Wolfcha like Town of Salem?", answer: "Both are social deduction games, but Wolfcha is designed for solo play with AI opponents. Town of Salem requires human players." },
-      { question: "Which has more roles?", answer: "Town of Salem has more unique roles. Wolfcha focuses on classic Werewolf roles (Seer, Witch, Hunter, Guard) with deep AI behavior." },
-      { question: "Can I play Town of Salem alone?", answer: "No. Town of Salem requires other human players. Wolfcha is built for solo play." },
-      { question: "Which is better for beginners?", answer: "Wolfcha — you can practice without pressure from competitive players or wait times." },
-      { question: "Does Wolfcha have ranked play?", answer: "Not currently. Wolfcha focuses on the solo experience with AI opponents." },
-      { question: "Is there voice chat?", answer: "Town of Salem is text-only. Wolfcha has optional voice acting for AI dialogue and narration." },
+      { question: "Is Wolves House like Town of Salem?", answer: "Both are social deduction games, but Wolves House is designed for solo play with AI opponents. Town of Salem requires human players." },
+      { question: "Which has more roles?", answer: "Town of Salem has more unique roles. Wolves House focuses on classic Werewolf roles (Seer, Witch, Hunter, Guard) with deep AI behavior." },
+      { question: "Can I play Town of Salem alone?", answer: "No. Town of Salem requires other human players. Wolves House is built for solo play." },
+      { question: "Which is better for beginners?", answer: "Wolves House — you can practice without pressure from competitive players or wait times." },
+      { question: "Does Wolves House have ranked play?", answer: "Not currently. Wolves House focuses on the solo experience with AI opponents." },
+      { question: "Is there voice chat?", answer: "Town of Salem is text-only. Wolves House has optional voice acting for AI dialogue and narration." },
     ],
     related: {
       hub: hubLinks,
@@ -129,9 +129,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Werewolf vs Among Us",
     tagline: "Social deduction: classic vs modern",
     heroDescription:
-      "Among Us popularized social deduction for a new generation. But how does it compare to classic Werewolf? If you love Among Us's core loop, Wolfcha offers a different flavor — pure dialogue and deduction without tasks.",
+      "Among Us popularized social deduction for a new generation. But how does it compare to classic Werewolf? If you love Among Us's core loop, Wolves House offers a different flavor — pure dialogue and deduction without tasks.",
     comparisonIntro:
-      "Among Us combines social deduction with task-based gameplay. Players complete tasks while imposters sabotage and kill. Werewolf (Wolfcha) is pure social deduction — no tasks, just discussion, voting, and deception.",
+      "Among Us combines social deduction with task-based gameplay. Players complete tasks while imposters sabotage and kill. Werewolf (Wolves House) is pure social deduction — no tasks, just discussion, voting, and deception.",
     comparisonTable: [
       { dimension: "Gameplay focus", wolfcha: "Pure social deduction", other: "Tasks + social deduction" },
       { dimension: "Solo play", wolfcha: "Yes — AI opponents", other: "No — requires players" },
@@ -149,7 +149,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "Focus on deduction, not tasks",
       "Classic Werewolf roles and abilities",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You prefer pure social deduction",
       "You want deep discussions and arguments",
       "You don't have friends online to play with",
@@ -164,12 +164,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "Pure social deduction with AI that actually argues and reasons — no tasks, just deception and logic.",
     seats: baseSeats,
     faqs: [
-      { question: "Is Wolfcha like Among Us?", answer: "Both are social deduction, but Among Us has tasks and movement. Wolfcha is pure discussion and voting." },
-      { question: "Can I play Among Us alone?", answer: "Not really — it requires other players. Wolfcha is designed for solo play with AI." },
-      { question: "Which has deeper discussions?", answer: "Wolfcha. Among Us discussions are brief between tasks. Wolfcha is entirely discussion-based." },
-      { question: "Is there any movement in Wolfcha?", answer: "No. Wolfcha is a table-based discussion game. Among Us has maps you move through." },
-      { question: "Which is better for quick games?", answer: "Among Us is faster (5-15 min). Wolfcha games are 10-30 minutes for deeper discussion." },
-      { question: "Can I practice for Among Us with Wolfcha?", answer: "Yes! The core skills — lying, detecting lies, building consensus — transfer well." },
+      { question: "Is Wolves House like Among Us?", answer: "Both are social deduction, but Among Us has tasks and movement. Wolves House is pure discussion and voting." },
+      { question: "Can I play Among Us alone?", answer: "Not really — it requires other players. Wolves House is designed for solo play with AI." },
+      { question: "Which has deeper discussions?", answer: "Wolves House. Among Us discussions are brief between tasks. Wolves House is entirely discussion-based." },
+      { question: "Is there any movement in Wolves House?", answer: "No. Wolves House is a table-based discussion game. Among Us has maps you move through." },
+      { question: "Which is better for quick games?", answer: "Among Us is faster (5-15 min). Wolves House games are 10-30 minutes for deeper discussion." },
+      { question: "Can I practice for Among Us with Wolves House?", answer: "Yes! The core skills — lying, detecting lies, building consensus — transfer well." },
     ],
     related: {
       hub: hubLinks,
@@ -183,9 +183,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Werewolf vs Secret Hitler",
     tagline: "Hidden roles with different mechanics",
     heroDescription:
-      "Secret Hitler adds policy-passing and government mechanics to social deduction. If you enjoy the political intrigue of Secret Hitler, Wolfcha offers a different experience — classic Werewolf roles with AI opponents.",
+      "Secret Hitler adds policy-passing and government mechanics to social deduction. If you enjoy the political intrigue of Secret Hitler, Wolves House offers a different experience — classic Werewolf roles with AI opponents.",
     comparisonIntro:
-      "Secret Hitler is a board game where fascists try to pass fascist policies while liberals try to stop them. Werewolf (Wolfcha) uses night kills and special powers instead of policy mechanics.",
+      "Secret Hitler is a board game where fascists try to pass fascist policies while liberals try to stop them. Werewolf (Wolves House) uses night kills and special powers instead of policy mechanics.",
     comparisonTable: [
       { dimension: "Core mechanic", wolfcha: "Night kills + special powers", other: "Policy passing + government" },
       { dimension: "Solo play", wolfcha: "Yes — AI opponents", other: "No — requires 5-10 players" },
@@ -203,7 +203,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "AI opponents that actually reason",
       "Classic Werewolf abilities",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You want to play solo",
       "You prefer classic Werewolf mechanics",
       "You don't have a game night group",
@@ -218,12 +218,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "Classic Werewolf mechanics with AI opponents — play the deduction game anytime, no group needed.",
     seats: baseSeats,
     faqs: [
-      { question: "How is Wolfcha different from Secret Hitler?", answer: "Different mechanics: Wolfcha uses night kills and special powers; Secret Hitler uses policy passing and government roles." },
-      { question: "Which is more strategic?", answer: "Both are strategic. Secret Hitler has more structured decisions (policies, government). Wolfcha has more free-form discussion." },
-      { question: "Can I play Secret Hitler online?", answer: "Yes, on some platforms with other players. But Wolfcha is designed for solo play with AI." },
-      { question: "Which is better for parties?", answer: "Secret Hitler is designed for groups. Wolfcha is designed for solo play." },
+      { question: "How is Wolves House different from Secret Hitler?", answer: "Different mechanics: Wolves House uses night kills and special powers; Secret Hitler uses policy passing and government roles." },
+      { question: "Which is more strategic?", answer: "Both are strategic. Secret Hitler has more structured decisions (policies, government). Wolves House has more free-form discussion." },
+      { question: "Can I play Secret Hitler online?", answer: "Yes, on some platforms with other players. But Wolves House is designed for solo play with AI." },
+      { question: "Which is better for parties?", answer: "Secret Hitler is designed for groups. Wolves House is designed for solo play." },
       { question: "Do skills transfer between them?", answer: "Somewhat. Both require reading people and managing information. The specific mechanics differ." },
-      { question: "Is Wolfcha a board game?", answer: "No. Wolfcha is a browser-based video game with AI opponents." },
+      { question: "Is Wolves House a board game?", answer: "No. Wolves House is a browser-based video game with AI opponents." },
     ],
     related: {
       hub: hubLinks,
@@ -237,9 +237,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Social Deduction Games Like Werewolf",
     tagline: "Find your next favorite deception game",
     heroDescription:
-      "Love Werewolf? The social deduction genre has many options — from Among Us to Secret Hitler to One Night Ultimate. Here's how Wolfcha fits in and why it's unique: solo play with AI opponents.",
+      "Love Werewolf? The social deduction genre has many options — from Among Us to Secret Hitler to One Night Ultimate. Here's how Wolves House fits in and why it's unique: solo play with AI opponents.",
     comparisonIntro:
-      "Social deduction games share a core loop: hidden roles, discussion, and voting. But they differ in mechanics, player counts, and platforms. Wolfcha is the only one designed for solo play with AI.",
+      "Social deduction games share a core loop: hidden roles, discussion, and voting. But they differ in mechanics, player counts, and platforms. Wolves House is the only one designed for solo play with AI.",
     comparisonTable: [
       { dimension: "Werewolf (Classic)", wolfcha: "✓ Classic roles, AI opponents", other: "Requires 7+ players" },
       { dimension: "Among Us", wolfcha: "Pure discussion (no tasks)", other: "Tasks + discussion" },
@@ -257,7 +257,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "Voice acting and immersive audio",
       "Classic Werewolf mechanics",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You want to play alone",
       "You love classic Werewolf/Mafia",
       "You can't gather a group",
@@ -272,12 +272,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "The only social deduction game where you can play solo against AI that actually reasons and argues.",
     seats: baseSeats,
     faqs: [
-      { question: "What makes Wolfcha different from other social deduction games?", answer: "Wolfcha is designed for solo play. AI opponents have distinct personalities and actually reason — not random behavior." },
-      { question: "Can I practice for other games with Wolfcha?", answer: "Yes! Core skills like reading lies, building trust, and managing information transfer to all social deduction games." },
-      { question: "Is Wolfcha like One Night Ultimate Werewolf?", answer: "Similar theme, different format. One Night is a single round. Wolfcha has multiple day/night cycles like classic Werewolf." },
-      { question: "What if I don't have friends who play social deduction?", answer: "That's exactly why Wolfcha exists. Play anytime with AI opponents." },
-      { question: "Is Wolfcha competitive?", answer: "It can be! You're trying to win against AI opponents. But it's also great for casual practice." },
-      { question: "Which social deduction game is best?", answer: "Depends on your situation. For solo play, Wolfcha. For groups, among the others based on your preferred mechanics." },
+      { question: "What makes Wolves House different from other social deduction games?", answer: "Wolves House is designed for solo play. AI opponents have distinct personalities and actually reason — not random behavior." },
+      { question: "Can I practice for other games with Wolves House?", answer: "Yes! Core skills like reading lies, building trust, and managing information transfer to all social deduction games." },
+      { question: "Is Wolves House like One Night Ultimate Werewolf?", answer: "Similar theme, different format. One Night is a single round. Wolves House has multiple day/night cycles like classic Werewolf." },
+      { question: "What if I don't have friends who play social deduction?", answer: "That's exactly why Wolves House exists. Play anytime with AI opponents." },
+      { question: "Is Wolves House competitive?", answer: "It can be! You're trying to win against AI opponents. But it's also great for casual practice." },
+      { question: "Which social deduction game is best?", answer: "Depends on your situation. For solo play, Wolves House. For groups, among the others based on your preferred mechanics." },
     ],
     related: {
       hub: hubLinks,
@@ -291,9 +291,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Party Games Like Werewolf",
     tagline: "Deception and deduction for any occasion",
     heroDescription:
-      "Werewolf is a party game classic — but what if you don't have a party? Wolfcha brings the Werewolf experience to solo play. Here's how it compares to other party games and when to choose each.",
+      "Werewolf is a party game classic — but what if you don't have a party? Wolves House brings the Werewolf experience to solo play. Here's how it compares to other party games and when to choose each.",
     comparisonIntro:
-      "Party games with hidden roles and deception are hugely popular. Most require groups; Wolfcha lets you enjoy the core experience alone.",
+      "Party games with hidden roles and deception are hugely popular. Most require groups; Wolves House lets you enjoy the core experience alone.",
     comparisonTable: [
       { dimension: "Players needed", wolfcha: "1 (you vs AI)", other: "Usually 5-15" },
       { dimension: "Setup time", wolfcha: "Instant — browser", other: "Varies (cards, apps, etc.)" },
@@ -311,7 +311,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "Voice acting for atmosphere",
       "Practice without social pressure",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You're alone and want to play",
       "You want to practice before a party",
       "You don't have a regular game group",
@@ -326,12 +326,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "All the fun of a party game, playable alone with AI opponents that think and argue.",
     seats: baseSeats,
     faqs: [
-      { question: "Can Wolfcha replace party Werewolf?", answer: "For solo practice, yes. For actual parties with friends, play the real thing! Wolfcha is for when you're alone." },
+      { question: "Can Wolves House replace party Werewolf?", answer: "For solo practice, yes. For actual parties with friends, play the real thing! Wolves House is for when you're alone." },
       { question: "Is it as fun as playing with humans?", answer: "Different fun. AI opponents are consistent and strategic. Human games have unpredictability and social dynamics." },
-      { question: "Can I learn Werewolf from Wolfcha?", answer: "Yes! Wolfcha teaches all the mechanics. You'll be ready for human games." },
-      { question: "Is Wolfcha good for introverts?", answer: "Perfect for introverts who enjoy deduction games but find parties draining." },
-      { question: "Can I play Wolfcha at a party?", answer: "You could, but it's designed for solo play. For parties, use classic Werewolf cards or apps." },
-      { question: "What other party games can I play alone?", answer: "Not many! Most party games require groups. Wolfcha is unique in offering solo social deduction." },
+      { question: "Can I learn Werewolf from Wolves House?", answer: "Yes! Wolves House teaches all the mechanics. You'll be ready for human games." },
+      { question: "Is Wolves House good for introverts?", answer: "Perfect for introverts who enjoy deduction games but find parties draining." },
+      { question: "Can I play Wolves House at a party?", answer: "You could, but it's designed for solo play. For parties, use classic Werewolf cards or apps." },
+      { question: "What other party games can I play alone?", answer: "Not many! Most party games require groups. Wolves House is unique in offering solo social deduction." },
     ],
     related: {
       hub: hubLinks,
@@ -345,7 +345,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Best Werewolf Game Online",
     tagline: "Find the right online Werewolf for you",
     heroDescription:
-      "Looking for the best way to play Werewolf online? Options range from multiplayer platforms to AI-based solo experiences. Here's how they compare and why Wolfcha stands out for solo players.",
+      "Looking for the best way to play Werewolf online? Options range from multiplayer platforms to AI-based solo experiences. Here's how they compare and why Wolves House stands out for solo players.",
     comparisonIntro:
       "Online Werewolf options include multiplayer sites, apps, and solo experiences. The best choice depends on whether you have other players available.",
     comparisonTable: [
@@ -354,7 +354,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       { dimension: "Discord Bots", wolfcha: "No setup needed", other: "Requires Discord server" },
       { dimension: "BlankmediaGames", wolfcha: "AI opponents", other: "Human players" },
       { dimension: "Tabletop Simulator", wolfcha: "Free, instant", other: "Paid, needs group" },
-      { dimension: "Wolfcha", wolfcha: "Solo + AI + voice", other: "(This is Wolfcha)" },
+      { dimension: "Wolves House", wolfcha: "Solo + AI + voice", other: "(This is Wolves House)" },
     ],
     wolfchaAdvantages: [
       "Only option for true solo play",
@@ -363,7 +363,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "No queue times or waiting",
       "Free and browser-based",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You want to play alone",
       "You want instant games",
       "You prefer voice acting",
@@ -378,12 +378,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "The only online Werewolf where you can play solo with AI that actually thinks and argues.",
     seats: baseSeats,
     faqs: [
-      { question: "What's the best Werewolf game online?", answer: "Depends on your needs. For solo play: Wolfcha. For multiplayer: Town of Salem or Wolvesville." },
-      { question: "Can I play Werewolf online without other people?", answer: "Only with Wolfcha. All other online options require human players." },
-      { question: "Is Wolfcha free?", answer: "Yes! Free to play in your browser. No download or registration required." },
-      { question: "Which has the best AI?", answer: "Wolfcha is the only one with AI opponents that reason and argue. Others use human players only." },
-      { question: "Can I play Werewolf on mobile?", answer: "Wolfcha works on mobile browsers. Wolvesville is a dedicated mobile app for multiplayer." },
-      { question: "Is online Werewolf as good as in-person?", answer: "Different experience. Online lacks physical presence but allows play anytime. Wolfcha adds voice acting for atmosphere." },
+      { question: "What's the best Werewolf game online?", answer: "Depends on your needs. For solo play: Wolves House. For multiplayer: Town of Salem or Wolvesville." },
+      { question: "Can I play Werewolf online without other people?", answer: "Only with Wolves House. All other online options require human players." },
+      { question: "Is Wolves House free?", answer: "Yes! Free to play in your browser. No download or registration required." },
+      { question: "Which has the best AI?", answer: "Wolves House is the only one with AI opponents that reason and argue. Others use human players only." },
+      { question: "Can I play Werewolf on mobile?", answer: "Wolves House works on mobile browsers. Wolvesville is a dedicated mobile app for multiplayer." },
+      { question: "Is online Werewolf as good as in-person?", answer: "Different experience. Online lacks physical presence but allows play anytime. Wolves House adds voice acting for atmosphere." },
     ],
     related: {
       hub: hubLinks,
@@ -397,9 +397,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "Werewolf Game Alternatives",
     tagline: "Options for every situation",
     heroDescription:
-      "Can't play classic Werewolf? There are alternatives for every situation — from solo AI games to quick mobile apps. Here's a complete guide to Werewolf alternatives and where Wolfcha fits.",
+      "Can't play classic Werewolf? There are alternatives for every situation — from solo AI games to quick mobile apps. Here's a complete guide to Werewolf alternatives and where Wolves House fits.",
     comparisonIntro:
-      "Whether you're missing players, want a different flavor, or need something portable, there's a Werewolf alternative. Wolfcha is the best option for solo play.",
+      "Whether you're missing players, want a different flavor, or need something portable, there's a Werewolf alternative. Wolves House is the best option for solo play.",
     comparisonTable: [
       { dimension: "Problem: No players", wolfcha: "✓ AI opponents", other: "Still need players" },
       { dimension: "Problem: No time", wolfcha: "✓ Quick 10-min games", other: "Often longer" },
@@ -415,7 +415,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "Voice acting for atmosphere",
       "Practice without judgment",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You don't have enough players",
       "You want to practice privately",
       "You prefer solo gaming",
@@ -430,12 +430,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "The alternative for when you can't get a group together — real Werewolf gameplay with AI.",
     seats: baseSeats,
     faqs: [
-      { question: "What's the best Werewolf alternative for solo play?", answer: "Wolfcha. It's designed specifically for solo play with AI opponents that reason and argue." },
-      { question: "Are there Werewolf apps I can play alone?", answer: "Most Werewolf apps require human players. Wolfcha is browser-based and works solo." },
-      { question: "Can One Night Ultimate Werewolf be played solo?", answer: "Not really — it's designed for groups. Wolfcha is the solo alternative." },
-      { question: "Is Wolfcha good for practice?", answer: "Excellent! Practice strategies and roles without social pressure before playing with humans." },
-      { question: "What if I just want to watch?", answer: "Wolfcha lets you play or spectate. Watch AI opponents argue and deduce." },
-      { question: "Are there any truly single-player social deduction games?", answer: "Wolfcha is essentially unique in this space. Most social deduction requires human players." },
+      { question: "What's the best Werewolf alternative for solo play?", answer: "Wolves House. It's designed specifically for solo play with AI opponents that reason and argue." },
+      { question: "Are there Werewolf apps I can play alone?", answer: "Most Werewolf apps require human players. Wolves House is browser-based and works solo." },
+      { question: "Can One Night Ultimate Werewolf be played solo?", answer: "Not really — it's designed for groups. Wolves House is the solo alternative." },
+      { question: "Is Wolves House good for practice?", answer: "Excellent! Practice strategies and roles without social pressure before playing with humans." },
+      { question: "What if I just want to watch?", answer: "Wolves House lets you play or spectate. Watch AI opponents argue and deduce." },
+      { question: "Are there any truly single-player social deduction games?", answer: "Wolves House is essentially unique in this space. Most social deduction requires human players." },
     ],
     related: {
       hub: hubLinks,
@@ -449,9 +449,9 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     title: "AI Party Games — Play Alone",
     tagline: "Party games you can enjoy solo with AI",
     heroDescription:
-      "Love party games but don't always have a party? AI-powered games let you enjoy social experiences alone. Wolfcha brings Werewolf's social deduction to solo play with AI opponents that think and argue.",
+      "Love party games but don't always have a party? AI-powered games let you enjoy social experiences alone. Wolves House brings Werewolf's social deduction to solo play with AI opponents that think and argue.",
     comparisonIntro:
-      "AI is changing gaming — including party games. Wolfcha represents a new category: party-style games designed for solo play with intelligent AI opponents.",
+      "AI is changing gaming — including party games. Wolves House represents a new category: party-style games designed for solo play with intelligent AI opponents.",
     comparisonTable: [
       { dimension: "Social deduction", wolfcha: "✓ Full Werewolf experience", other: "Usually requires humans" },
       { dimension: "AI intelligence", wolfcha: "Multiple AI models, distinct personalities", other: "Varies widely" },
@@ -467,7 +467,7 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
       "Classic party game mechanics",
       "True social deduction experience",
     ],
-    whenToChooseWolfcha: [
+    whenToChooseWolvesHouse: [
       "You want social deduction alone",
       "You enjoy AI-powered games",
       "You love Werewolf/Mafia",
@@ -482,12 +482,12 @@ export const gameComparisonDataByKey: Record<GameComparisonKey, GameComparisonDa
     wolfchaDifferentiator: "A party game you can play alone — with AI opponents that argue, deceive, and reason like humans.",
     seats: baseSeats,
     faqs: [
-      { question: "Can AI really replace party game opponents?", answer: "For many games, not yet. Wolfcha's AI is specifically designed for social deduction and provides a genuine experience." },
-      { question: "Is it lonely playing with AI?", answer: "Surprisingly not! Wolfcha's AI opponents have personalities and create engaging interactions." },
-      { question: "Will there be more AI party games?", answer: "Likely! AI gaming is growing. Wolfcha is pioneering solo social deduction." },
+      { question: "Can AI really replace party game opponents?", answer: "For many games, not yet. Wolves House's AI is specifically designed for social deduction and provides a genuine experience." },
+      { question: "Is it lonely playing with AI?", answer: "Surprisingly not! Wolves House's AI opponents have personalities and create engaging interactions." },
+      { question: "Will there be more AI party games?", answer: "Likely! AI gaming is growing. Wolves House is pioneering solo social deduction." },
       { question: "How smart is the AI?", answer: "Very capable for Werewolf. AI tracks statements, catches contradictions, and coordinates effectively." },
       { question: "Is it as fun as human opponents?", answer: "Different fun. AI is more consistent and strategic. Humans are more unpredictable." },
-      { question: "What other AI games exist?", answer: "AI Dungeon, Character.AI, and others. Wolfcha is unique for structured party game mechanics." },
+      { question: "What other AI games exist?", answer: "AI Dungeon, Character.AI, and others. Wolves House is unique for structured party game mechanics." },
     ],
     related: {
       hub: hubLinks,

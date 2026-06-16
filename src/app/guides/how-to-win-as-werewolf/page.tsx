@@ -10,7 +10,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingDialogueExamples, type LandingDialogueExample } from "@/components/seo/landing/LandingDialogueExamples";
 
 export const metadata: Metadata = {
-  title: "How to Win as Werewolf: Complete Strategy Guide | Wolfcha",
+  title: "How to Win as Werewolf: Complete Strategy Guide | Wolves House",
   description:
     "Master werewolf strategy with our comprehensive guide. Learn deception tactics, kill target selection, fake claiming, vote manipulation, and team coordination to dominate as the wolf team.",
   keywords: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: "https://wolf-cha.com/guides/how-to-win-as-werewolf",
   },
   openGraph: {
-    title: "How to Win as Werewolf: Master the Art of Deception | Wolfcha",
+    title: "How to Win as Werewolf: Master the Art of Deception | Wolves House",
     description:
       "Complete werewolf strategy guide - deception tactics, kill selection, fake claiming, and coordination to ensure wolf victory.",
     url: "https://wolf-cha.com/guides/how-to-win-as-werewolf",
@@ -42,8 +42,8 @@ const articleJsonLd = {
   headline: "How to Win as Werewolf: Complete Strategy Guide",
   description: "Master the art of deception and dominate as the werewolf team with comprehensive strategies for kill selection, fake claiming, and team coordination.",
   image: "https://wolf-cha.com/og-image.png",
-  author: { "@type": "Organization", name: "Wolfcha", url: "https://wolf-cha.com" },
-  publisher: { "@type": "Organization", name: "Wolfcha", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
+  author: { "@type": "Organization", name: "Wolves House", url: "https://wolf-cha.com" },
+  publisher: { "@type": "Organization", name: "Wolves House", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
   datePublished: "2024-01-15",
   dateModified: new Date().toISOString().split("T")[0],
   mainEntityOfPage: { "@type": "WebPage", "@id": "https://wolf-cha.com/guides/how-to-win-as-werewolf" },
@@ -131,7 +131,7 @@ export default function HowToWinAsWerewolfPage() {
               </div>
             </div>
             <p className="text-[var(--text-secondary)] mb-4">
-              Werewolves win when they <strong className="text-[var(--text-primary)]">equal or outnumber</strong> the remaining village team members. 
+              Werewolves win when they <strong className="text-[var(--text-primary)]">equal or outnumber</strong> the remaining village team members.
               At this point, wolves control the vote and cannot be stopped.
             </p>
             <div className="grid grid-cols-3 gap-3 text-center">
@@ -188,7 +188,7 @@ export default function HowToWinAsWerewolfPage() {
         <div className="space-y-6">
           <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6">
             <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Kill Priority Tier List</h3>
-            
+
             <div className="space-y-4">
               <div className="flex gap-4 p-4 rounded-lg bg-red-950/40 border border-red-500/30">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/30 text-red-300 font-bold">S</div>
@@ -457,7 +457,7 @@ export default function HowToWinAsWerewolfPage() {
                 <span className="text-green-400">✓</span>
                 <div>
                   <div className="font-semibold text-[var(--text-primary)]">Agree on Kill Quickly</div>
-                  <p className="text-sm text-[var(--text-secondary)]">In physical games, use pre-agreed signals. In online games like Wolfcha, discuss and reach consensus efficiently.</p>
+                  <p className="text-sm text-[var(--text-secondary)]">In physical games, use pre-agreed signals. In online games like Wolves House, discuss and reach consensus efficiently.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -548,7 +548,7 @@ export default function HowToWinAsWerewolfPage() {
             Embrace Your Inner Wolf 🐺
           </h2>
           <p className="text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-            The best way to master wolf strategy is through practice. Play unlimited games in Wolfcha and 
+            The best way to master wolf strategy is through practice. Play unlimited games in Wolves House and
             experience being a werewolf against AI opponents who will challenge your deception skills.
           </p>
           <Link href="/" className="inline-block rounded-full bg-[var(--color-gold)] px-8 py-4 font-bold text-black hover:bg-[var(--color-gold-dark)]">

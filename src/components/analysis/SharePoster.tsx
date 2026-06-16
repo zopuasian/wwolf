@@ -168,7 +168,7 @@ export const SharePoster = forwardRef<HTMLDivElement, SharePosterProps>(
         <div className="px-4 pt-4 pb-2 flex items-center justify-between border-b border-[#c5a059]/20">
           <div className="flex items-center space-x-1.5">
             <Scroll className="w-4 h-4 text-[#c5a059]" />
-            <span className="text-[#c5a059] font-bold text-sm tracking-wider">Wolfcha</span>
+            <span className="text-[#c5a059] font-bold text-sm tracking-wider">Wolves House</span>
           </div>
           <div
             className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${

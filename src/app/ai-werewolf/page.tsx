@@ -12,14 +12,14 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingCta } from "@/components/seo/landing/LandingCta";
 
 export const metadata: Metadata = {
-  title: "AI Werewolf (Mafia) Game — Play Solo with AI Opponents | Wolfcha",
+  title: "AI Werewolf (Mafia) Game — Play Solo with AI Opponents | Wolves House",
   description:
-    "Wolfcha is an AI-powered Werewolf (Mafia) social deduction game you can play solo in your browser. Talk, deduce, vote, and watch different AI models battle it out. No friends needed — just you vs a table of AI personalities.",
+    "Wolves House is an AI-powered Werewolf (Mafia) social deduction game you can play solo in your browser. Talk, deduce, vote, and watch different AI models battle it out. No friends needed — just you vs a table of AI personalities.",
   alternates: {
     canonical: "https://wolf-cha.com/ai-werewolf",
   },
   openGraph: {
-    title: "AI Werewolf (Mafia) Game — Play Solo | Wolfcha",
+    title: "AI Werewolf (Mafia) Game — Play Solo | Wolves House",
     description:
       "Play Werewolf (Mafia) solo against AI opponents. A browser-based social deduction game with voice acting, multiple AI models, and classic roles.",
     url: "https://wolf-cha.com/ai-werewolf",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
         url: "https://wolf-cha.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Wolfcha - AI Werewolf Game",
+        alt: "Wolves House - AI Werewolf Game",
       },
     ],
   },
@@ -117,11 +117,11 @@ const dialogueExamples = [
 const faqs = [
   {
     question: "What is AI Werewolf?",
-    answer: "AI Werewolf (also known as Mafia) is a social deduction game where you try to identify hidden werewolves through discussion and voting. In Wolfcha, you play against AI opponents powered by different language models, each with unique personalities and reasoning styles.",
+    answer: "AI Werewolf (also known as Mafia) is a social deduction game where you try to identify hidden werewolves through discussion and voting. In Wolves House, you play against AI opponents powered by different language models, each with unique personalities and reasoning styles.",
   },
   {
     question: "Can I play alone without friends?",
-    answer: "Yes! That's exactly what Wolfcha is designed for. Every other seat at the table is an AI opponent. You can start a game anytime, no group required.",
+    answer: "Yes! That's exactly what Wolves House is designed for. Every other seat at the table is an AI opponent. You can start a game anytime, no group required.",
   },
   {
     question: "How do different AI models play differently?",
@@ -129,14 +129,14 @@ const faqs = [
   },
   {
     question: "What roles are available?",
-    answer: "Wolfcha includes classic Werewolf roles: Werewolf (the hunters), Seer (checks alignments), Witch (one save, one kill), Hunter (shoots when dying), Guard (protects players), and Villager (the majority trying to find wolves).",
+    answer: "Wolves House includes classic Werewolf roles: Werewolf (the hunters), Seer (checks alignments), Witch (one save, one kill), Hunter (shoots when dying), Guard (protects players), and Villager (the majority trying to find wolves).",
   },
   {
     question: "Is there voice acting?",
-    answer: "Yes! Wolfcha features optional voice acting for narration and character dialogue, making the experience more immersive. You can enable or disable it in settings.",
+    answer: "Yes! Wolves House features optional voice acting for narration and character dialogue, making the experience more immersive. You can enable or disable it in settings.",
   },
   {
-    question: "Is Wolfcha free to play?",
+    question: "Is Wolves House free to play?",
     answer: "Yes, you can start playing immediately for free in your browser. No download or registration required.",
   },
   {
@@ -144,8 +144,8 @@ const faqs = [
     answer: "A typical game takes 10-20 minutes depending on the number of players and your reading speed. Voice acting adds some time but enhances immersion.",
   },
   {
-    question: "What makes Wolfcha different from other Werewolf games?",
-    answer: "Wolfcha is designed for solo play with AI opponents that actually reason, argue, and form alliances. It's not just random decisions — AI players have distinct personalities and strategies, creating a genuine social deduction experience.",
+    question: "What makes Wolves House different from other Werewolf games?",
+    answer: "Wolves House is designed for solo play with AI opponents that actually reason, argue, and form alliances. It's not just random decisions — AI players have distinct personalities and strategies, creating a genuine social deduction experience.",
   },
 ];
 
@@ -168,7 +168,7 @@ function buildGameJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "VideoGame",
-    name: "Wolfcha - AI Werewolf Game",
+    name: "Wolves House - AI Werewolf Game",
     description: "A solo Werewolf (Mafia) social deduction game where you play against AI opponents powered by different language models.",
     url: "https://wolf-cha.com/ai-werewolf",
     genre: ["Social Deduction", "Party Game", "Strategy"],
@@ -207,7 +207,7 @@ export default function AiWerewolfPage() {
       <LandingHero
         title="AI Werewolf (Mafia), playable solo"
         subtitle="Social deduction meets AI"
-        description="Werewolf (also known as Mafia) is a social deduction game about hidden roles, persuasion, and imperfect information. Wolfcha turns it into a single-player experience: every other seat is controlled by AI, each with unique personalities and reasoning styles."
+        description="Werewolf (also known as Mafia) is a social deduction game about hidden roles, persuasion, and imperfect information. Wolves House turns it into a single-player experience: every other seat is controlled by AI, each with unique personalities and reasoning styles."
         primaryCta={{ href: "/", label: "Play now — free" }}
         secondaryCta={{ href: "/how-to-play", label: "Learn the rules" }}
         aside={<LandingAiSeats seats={aiSeats.slice(0, 6)} compact />}
@@ -266,7 +266,7 @@ export default function AiWerewolfPage() {
       {/* What makes it different */}
       <LandingSection
         id="why-wolfcha"
-        title="What makes Wolfcha different"
+        title="What makes Wolves House different"
         subtitle="Not just another Werewolf app — a genuine social deduction experience against reasoning AI."
       >
         <div className="grid gap-6 md:grid-cols-2">
@@ -332,7 +332,7 @@ export default function AiWerewolfPage() {
       <LandingSection
         id="related"
         title="Explore more"
-        subtitle="Dive deeper into Wolfcha's features, roles, and AI opponents."
+        subtitle="Dive deeper into Wolves House's features, roles, and AI opponents."
       >
         <div className="grid gap-10 lg:grid-cols-2">
           <LandingRelatedLinks title="Hub pages" links={hubLinks} />

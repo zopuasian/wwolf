@@ -87,7 +87,7 @@ function parseArgs() {
 
 function printHelp() {
   console.log(`
-Wolfcha adaptive multiplayer bots
+Wolves House adaptive multiplayer bots
 
 Usage:
   pnpm bots:multiplayer

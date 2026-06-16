@@ -10,7 +10,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingAiSeats } from "@/components/seo/landing/LandingAiSeats";
 
 export const metadata: Metadata = {
-  title: "Werewolf Game Rules: Complete Official Guide for Beginners | Wolfcha",
+  title: "Werewolf Game Rules: Complete Official Guide for Beginners | Wolves House",
   description:
     "Master Werewolf (Mafia) game rules with our comprehensive guide. Learn night phases, day voting, role abilities, win conditions, and advanced strategies. Play solo against AI or with friends.",
   keywords: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: "https://wolf-cha.com/guides/werewolf-rules",
   },
   openGraph: {
-    title: "Werewolf Game Rules: Complete Official Guide | Wolfcha",
+    title: "Werewolf Game Rules: Complete Official Guide | Wolves House",
     description:
       "Learn the complete rules of Werewolf (Mafia) - night phases, day voting, role abilities, and winning strategies. Perfect for beginners and experienced players.",
     url: "https://wolf-cha.com/guides/werewolf-rules",
@@ -52,12 +52,12 @@ const articleJsonLd = {
   image: "https://wolf-cha.com/og-image.png",
   author: {
     "@type": "Organization",
-    name: "Wolfcha",
+    name: "Wolves House",
     url: "https://wolf-cha.com",
   },
   publisher: {
     "@type": "Organization",
-    name: "Wolfcha",
+    name: "Wolves House",
     logo: {
       "@type": "ImageObject",
       url: "https://wolf-cha.com/logo.png",
@@ -80,7 +80,7 @@ const faqJsonLd = {
       name: "How many players do you need to play Werewolf?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Traditional Werewolf requires 7-15 players plus a moderator. However, with Wolfcha, you can play solo against AI opponents with 8-12 total players in a game.",
+        text: "Traditional Werewolf requires 7-15 players plus a moderator. However, with Wolves House, you can play solo against AI opponents with 8-12 total players in a game.",
       },
     },
     {
@@ -131,7 +131,7 @@ const faqItems = [
   {
     question: "How many players do you need to play Werewolf?",
     answer:
-      "Traditional Werewolf requires 7-15 players plus a moderator. However, with Wolfcha, you can play solo against AI opponents with 8-12 total players in a game. This makes it perfect for practicing strategies or enjoying the game when you can't gather a group.",
+      "Traditional Werewolf requires 7-15 players plus a moderator. However, with Wolves House, you can play solo against AI opponents with 8-12 total players in a game. This makes it perfect for practicing strategies or enjoying the game when you can't gather a group.",
   },
   {
     question: "What is the difference between Werewolf and Mafia?",
@@ -156,7 +156,7 @@ const faqItems = [
   {
     question: "What if there's a tie during voting?",
     answer:
-      "Tie-handling varies by ruleset. Common approaches include: no elimination (the tied players survive), a runoff vote between tied players, or the Sheriff/Mayor breaks the tie. In Wolfcha, tied players enter a PK (player kill) speech round before a revote.",
+      "Tie-handling varies by ruleset. Common approaches include: no elimination (the tied players survive), a runoff vote between tied players, or the Sheriff/Mayor breaks the tie. In Wolves House, tied players enter a PK (player kill) speech round before a revote.",
   },
   {
     question: "Can Werewolves kill each other?",
@@ -205,7 +205,7 @@ export default function WerewolfRulesPage() {
           <p className="text-[var(--text-secondary)] leading-relaxed text-lg">
             Werewolf is a party game for 7-15+ players that pits an informed minority (the werewolves) against an uninformed majority (the villagers). Created by Dimitry Davidoff in 1986 as &quot;Mafia,&quot; the game gained its werewolf theme in 1997 and has since become one of the world&apos;s most popular social deduction games.
           </p>
-          
+
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -655,7 +655,7 @@ export default function WerewolfRulesPage() {
                   <p className="text-xs text-[var(--color-gold)]">Leadership with responsibility</p>
                 </div>
               </div>
-              
+
               <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
                 <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-gold)]/10 text-xs font-bold text-[var(--color-gold)]">1</div>
@@ -676,7 +676,7 @@ export default function WerewolfRulesPage() {
           <div>
             <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6">
               <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Sheriff Election Process</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-bold text-indigo-400">1</div>
@@ -788,7 +788,7 @@ export default function WerewolfRulesPage() {
                 Ready to Practice These Rules?
               </h2>
               <p className="mt-3 text-[var(--text-secondary)] max-w-xl">
-                Play Werewolf solo against AI opponents in Wolfcha. No friends needed, no waiting for a group. 
+                Play Werewolf solo against AI opponents in Wolves House. No friends needed, no waiting for a group.
                 Start a game in seconds and master the rules with unlimited practice.
               </p>
             </div>

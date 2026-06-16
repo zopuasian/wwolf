@@ -1453,7 +1453,7 @@ export default function Home() {
                 <div className="wc-topbar__row-1 flex items-center justify-between w-full md:w-auto md:contents">
                   <div className="wc-topbar__title">
                     <WerewolfIcon size={22} className="text-[var(--color-blood)]" />
-                    <span>WOLFCHA</span>
+                    <span>WOLVES HOUSE</span>
                   </div>
 
                   {/* 移动端设置按钮 - 只显示图标 */}

@@ -11,14 +11,14 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingCta } from "@/components/seo/landing/LandingCta";
 
 export const metadata: Metadata = {
-  title: "AI Models Arena — Watch LLMs Play Werewolf | Wolfcha",
+  title: "AI Models Arena — Watch LLMs Play Werewolf | Wolves House",
   description:
-    "Wolfcha is a model arena where different AI models play Werewolf with unique personalities and reasoning styles. Watch DeepSeek, Qwen, Claude, Gemini, and more argue, bluff, and deduce.",
+    "Wolves House is a model arena where different AI models play Werewolf with unique personalities and reasoning styles. Watch DeepSeek, Qwen, Claude, Gemini, and more argue, bluff, and deduce.",
   alternates: {
     canonical: "https://wolf-cha.com/ai-models",
   },
   openGraph: {
-    title: "AI Model Arena — Watch LLMs Play Werewolf | Wolfcha",
+    title: "AI Model Arena — Watch LLMs Play Werewolf | Wolves House",
     description:
       "A model arena where different AI models play Werewolf (Mafia) with unique personalities and reasoning styles. Compare how they think, argue, and deceive.",
     url: "https://wolf-cha.com/ai-models",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
         url: "https://wolf-cha.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Wolfcha - AI Werewolf Game",
+        alt: "Wolves House - AI Werewolf Game",
       },
     ],
   },
@@ -296,8 +296,8 @@ const dialogueExamples = [
 
 const faqs = [
   {
-    question: "What AI models are available in Wolfcha?",
-    answer: "Wolfcha features 10 AI models: DeepSeek, Qwen, Kimi, Gemini, Claude, OpenAI GPT, GLM, Doubao, Seed, and MiniMax. Each has a unique personality and reasoning style.",
+    question: "What AI models are available in Wolves House?",
+    answer: "Wolves House features 10 AI models: DeepSeek, Qwen, Kimi, Gemini, Claude, OpenAI GPT, GLM, Doubao, Seed, and MiniMax. Each has a unique personality and reasoning style.",
   },
   {
     question: "How do different models play differently?",
@@ -330,7 +330,7 @@ const faqs = [
 ];
 
 const hubLinks = [
-  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolfcha is and why solo vs AI works." },
+  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolves House is and why solo vs AI works." },
   { href: "/how-to-play", label: "How to Play", description: "Learn the rules and get started." },
   { href: "/features", label: "Features", description: "Voice acting, browser play, and more." },
 ];
@@ -348,8 +348,8 @@ function buildOrganizationListJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "AI Models in Wolfcha",
-    description: "AI language models that play Werewolf in Wolfcha, each with unique personalities.",
+    name: "AI Models in Wolves House",
+    description: "AI language models that play Werewolf in Wolves House, each with unique personalities.",
     itemListElement: models.map((model, idx) => ({
       "@type": "ListItem",
       position: idx + 1,
@@ -397,7 +397,7 @@ export default function AiModelsPage() {
       <LandingHero
         title="AI Model Arena"
         subtitle="Watch LLMs play Werewolf"
-        description="Wolfcha isn't only a Werewolf game — it's a place to observe how different AI models reason under uncertainty, coordinate, bluff, and read social signals. Each model brings a unique personality to the table."
+        description="Wolves House isn't only a Werewolf game — it's a place to observe how different AI models reason under uncertainty, coordinate, bluff, and read social signals. Each model brings a unique personality to the table."
         primaryCta={{ href: "/", label: "Play now — free" }}
         secondaryCta={{ href: "/how-to-play", label: "Learn the rules" }}
       />
@@ -568,7 +568,7 @@ export default function AiModelsPage() {
       <LandingSection
         id="faq"
         title="Frequently asked questions"
-        subtitle="Common questions about AI models in Wolfcha."
+        subtitle="Common questions about AI models in Wolves House."
       >
         <LandingFaq items={faqs} />
       </LandingSection>

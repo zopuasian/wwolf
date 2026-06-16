@@ -12,14 +12,14 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingCta } from "@/components/seo/landing/LandingCta";
 
 export const metadata: Metadata = {
-  title: "Features — AI Werewolf Game with Voice Acting | Wolfcha",
+  title: "Features — AI Werewolf Game with Voice Acting | Wolves House",
   description:
-    "Explore Wolfcha features: solo social deduction gameplay, multi-model AI arena, immersive voice acting, classic Werewolf roles, and instant browser-based play. No download required.",
+    "Explore Wolves House features: solo social deduction gameplay, multi-model AI arena, immersive voice acting, classic Werewolf roles, and instant browser-based play. No download required.",
   alternates: {
     canonical: "https://wolf-cha.com/features",
   },
   openGraph: {
-    title: "Wolfcha Features — AI Werewolf Game",
+    title: "Wolves House Features — AI Werewolf Game",
     description:
       "Solo play, multi-model AI arena, voice acting, classic roles, and instant browser play — built for modern social deduction.",
     url: "https://wolf-cha.com/features",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
         url: "https://wolf-cha.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Wolfcha - AI Werewolf Game",
+        alt: "Wolves House - AI Werewolf Game",
       },
     ],
   },
@@ -175,12 +175,12 @@ const dialogueExamples = [
 
 const faqs = [
   {
-    question: "Is Wolfcha free to play?",
+    question: "Is Wolves House free to play?",
     answer: "Yes! You can start playing immediately for free in your browser. No registration required for basic play. Premium features are available for enhanced experience.",
   },
   {
     question: "Do I need to download anything?",
-    answer: "No. Wolfcha runs entirely in your browser. Works on desktop, tablet, and mobile. Just visit the site and start playing.",
+    answer: "No. Wolves House runs entirely in your browser. Works on desktop, tablet, and mobile. Just visit the site and start playing.",
   },
   {
     question: "How does voice acting work?",
@@ -188,7 +188,7 @@ const faqs = [
   },
   {
     question: "What AI models are available?",
-    answer: "Wolfcha features multiple AI models including DeepSeek, Qwen, Kimi, Gemini, Claude, OpenAI GPT, GLM, Doubao, Seed, and MiniMax. Each has a distinct personality and reasoning style.",
+    answer: "Wolves House features multiple AI models including DeepSeek, Qwen, Kimi, Gemini, Claude, OpenAI GPT, GLM, Doubao, Seed, and MiniMax. Each has a distinct personality and reasoning style.",
   },
   {
     question: "Can I choose which AI models to play against?",
@@ -196,7 +196,7 @@ const faqs = [
   },
   {
     question: "What roles are included?",
-    answer: "Wolfcha includes classic Werewolf roles: Werewolf, Seer, Witch, Hunter, Guard, and Villager. Each role has authentic abilities balanced for solo vs AI play.",
+    answer: "Wolves House includes classic Werewolf roles: Werewolf, Seer, Witch, Hunter, Guard, and Villager. Each role has authentic abilities balanced for solo vs AI play.",
   },
   {
     question: "How long does a game take?",
@@ -209,7 +209,7 @@ const faqs = [
 ];
 
 const hubLinks = [
-  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolfcha is and why solo vs AI works." },
+  { href: "/ai-werewolf", label: "AI Werewolf (Hub)", description: "What Wolves House is and why solo vs AI works." },
   { href: "/how-to-play", label: "How to Play", description: "Learn the rules and get started." },
   { href: "/ai-models", label: "AI Models", description: "Meet the different AI personalities." },
 ];
@@ -227,7 +227,7 @@ function buildSoftwareJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Wolfcha - AI Werewolf Game",
+    name: "Wolves House - AI Werewolf Game",
     description: "A solo Werewolf (Mafia) social deduction game with AI opponents, voice acting, and multiple AI models.",
     url: "https://wolf-cha.com/features",
     applicationCategory: "GameApplication",
@@ -270,9 +270,9 @@ export default function FeaturesPage() {
       <JsonLd id="faq-jsonld" data={buildFaqJsonLd()} />
 
       <LandingHero
-        title="Wolfcha Features"
+        title="Wolves House Features"
         subtitle="Everything you need for solo Werewolf"
-        description="Wolfcha is built for players who love deduction and dialogue, but don't always have a group available. It's the Werewolf (Mafia) party game reimagined as a solo experience with AI opponents, voice acting, and instant browser play."
+        description="Wolves House is built for players who love deduction and dialogue, but don't always have a group available. It's the Werewolf (Mafia) party game reimagined as a solo experience with AI opponents, voice acting, and instant browser play."
         primaryCta={{ href: "/", label: "Play now — free" }}
         secondaryCta={{ href: "/how-to-play", label: "Learn the rules" }}
         aside={<LandingAiSeats seats={aiSeats} compact />}
@@ -282,7 +282,7 @@ export default function FeaturesPage() {
       <LandingSection
         id="core-features"
         title="Core features"
-        subtitle="What makes Wolfcha the best way to play Werewolf solo."
+        subtitle="What makes Wolves House the best way to play Werewolf solo."
       >
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {coreFeatures.map((feature) => (
@@ -435,7 +435,7 @@ export default function FeaturesPage() {
       <LandingSection
         id="faq"
         title="Frequently asked questions"
-        subtitle="Common questions about Wolfcha features."
+        subtitle="Common questions about Wolves House features."
       >
         <LandingFaq items={faqs} />
       </LandingSection>
@@ -444,7 +444,7 @@ export default function FeaturesPage() {
       <LandingSection
         id="related"
         title="Explore more"
-        subtitle="Dive deeper into Wolfcha's game and AI arena."
+        subtitle="Dive deeper into Wolves House's game and AI arena."
       >
         <div className="grid gap-10 lg:grid-cols-2">
           <LandingRelatedLinks title="Hub pages" links={hubLinks} />

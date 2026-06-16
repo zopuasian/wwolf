@@ -64,7 +64,7 @@ function buildSoftwareAppJsonLd({
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: `${name} AI in Wolfcha`,
+    name: `${name} AI in Wolves House`,
     description,
     url,
     applicationCategory: "Game",
@@ -113,7 +113,7 @@ export async function generateMetadata({
   const comparisonData = getModelComparisonData(model);
   if (comparisonData) {
     const canonical = `https://wolf-cha.com/models/${comparisonData.key}`;
-    const title = `${comparisonData.modelA.name} vs ${comparisonData.modelB.name} — AI Werewolf Comparison | Wolfcha`;
+    const title = `${comparisonData.modelA.name} vs ${comparisonData.modelB.name} — AI Werewolf Comparison | Wolves House`;
     
     return {
       title,
@@ -129,7 +129,7 @@ export async function generateMetadata({
             url: "https://wolf-cha.com/og-image.png",
             width: 1200,
             height: 630,
-            alt: "Wolfcha - AI Werewolf Game",
+            alt: "Wolves House - AI Werewolf Game",
           },
         ],
       },
@@ -143,7 +143,7 @@ export async function generateMetadata({
   }
 
   const canonical = `https://wolf-cha.com/models/${data.key}`;
-  const title = `${data.displayName} AI in Werewolf — Personality & Play Style | Wolfcha`;
+  const title = `${data.displayName} AI in Werewolf — Personality & Play Style | Wolves House`;
 
   return {
     title,
@@ -161,7 +161,7 @@ export async function generateMetadata({
           url: "https://wolf-cha.com/og-image.png",
           width: 1200,
           height: 630,
-          alt: "Wolfcha - AI Werewolf Game",
+          alt: "Wolves House - AI Werewolf Game",
         },
       ],
     },
@@ -478,7 +478,7 @@ function SingleModelPage({ data }: { data: NonNullable<ReturnType<typeof getMode
         <LandingDialogueExamples examples={data.dialogues} />
       </LandingSection>
 
-      <LandingSection id="faq" title="Frequently asked questions" subtitle={`Common questions about ${data.displayName} in Wolfcha.`}>
+      <LandingSection id="faq" title="Frequently asked questions" subtitle={`Common questions about ${data.displayName} in Wolves House.`}>
         <LandingFaq items={data.faqs} />
       </LandingSection>
 

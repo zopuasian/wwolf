@@ -10,7 +10,7 @@ import { LandingRelatedLinks } from "@/components/seo/landing/LandingRelatedLink
 import { LandingDialogueExamples, type LandingDialogueExample } from "@/components/seo/landing/LandingDialogueExamples";
 
 export const metadata: Metadata = {
-  title: "Werewolf Night Phase Guide: All Night Actions Explained | Wolfcha",
+  title: "Werewolf Night Phase Guide: All Night Actions Explained | Wolves House",
   description:
     "Master the Werewolf night phase with our complete guide. Learn the action order, role abilities, strategic timing, and common mistakes. Guard → Werewolf → Witch → Seer explained.",
   keywords: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: "https://wolf-cha.com/guides/werewolf-night-phase",
   },
   openGraph: {
-    title: "Werewolf Night Phase Guide: Complete Action Order | Wolfcha",
+    title: "Werewolf Night Phase Guide: Complete Action Order | Wolves House",
     description:
       "Learn everything about the Werewolf night phase - action order, role abilities, and strategies for Guard, Werewolf, Witch, and Seer.",
     url: "https://wolf-cha.com/guides/werewolf-night-phase",
@@ -42,8 +42,8 @@ const articleJsonLd = {
   headline: "Werewolf Night Phase Guide: All Night Actions Explained",
   description: "Complete guide to the Werewolf night phase including action order, role abilities, and strategic decisions.",
   image: "https://wolf-cha.com/og-image.png",
-  author: { "@type": "Organization", name: "Wolfcha", url: "https://wolf-cha.com" },
-  publisher: { "@type": "Organization", name: "Wolfcha", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
+  author: { "@type": "Organization", name: "Wolves House", url: "https://wolf-cha.com" },
+  publisher: { "@type": "Organization", name: "Wolves House", logo: { "@type": "ImageObject", url: "https://wolf-cha.com/logo.png" } },
   datePublished: "2024-01-15",
   dateModified: new Date().toISOString().split("T")[0],
   mainEntityOfPage: { "@type": "WebPage", "@id": "https://wolf-cha.com/guides/werewolf-night-phase" },
@@ -90,7 +90,7 @@ const faqItems = [
   { question: "What happens if the Guard protects the wolf's target?", answer: "If the Guard successfully protects the werewolves' target, that player survives the night. The wolves' attack is nullified, and the Witch will be informed no one was killed (in some rule variants) or may still see who was targeted." },
   { question: "Can the Witch save herself if attacked?", answer: "In most rule variants, yes - the Witch can use her antidote to save herself if she is the wolf's target. However, some competitive rulesets prohibit self-saving to balance the Witch's power." },
   { question: "What does the Seer see when checking a player?", answer: "The Seer learns the target's alignment: either 'Werewolf' (evil team) or 'Villager' (good team). All village roles (Seer, Witch, Hunter, Guard, Villager) show as 'Villager' to the Seer." },
-  { question: "Can werewolves communicate during the night?", answer: "In traditional play, werewolves can only use silent gestures during night. In online/AI versions like Wolfcha, they may have private chat. They must agree on a single target to kill." },
+  { question: "Can werewolves communicate during the night?", answer: "In traditional play, werewolves can only use silent gestures during night. In online/AI versions like Wolves House, they may have private chat. They must agree on a single target to kill." },
   { question: "What happens if the Witch uses both potions on the same night?", answer: "In standard rules, the Witch can only use ONE potion per night - either save or poison, not both. This prevents the powerful combo of saving and poisoning in a single night." },
   { question: "Does the Guard's protection work against the Witch's poison?", answer: "No, the Guard's protection only blocks werewolf attacks. It does not protect against the Witch's poison, which is a separate action that bypasses protection." },
   { question: "What if the Seer checks a protected player?", answer: "The Seer's check is completely independent of protection. They still learn the target's alignment regardless of whether that player was protected or attacked." },
@@ -128,10 +128,10 @@ export default function WerewolfNightPhasePage() {
       >
         <div className="prose prose-invert max-w-none">
           <p className="text-lg text-[var(--text-secondary)] leading-relaxed">
-            The night phase is the heartbeat of Werewolf. While the village sleeps, werewolves hunt, protectors guard, and investigators gather intel. 
+            The night phase is the heartbeat of Werewolf. While the village sleeps, werewolves hunt, protectors guard, and investigators gather intel.
             What happens at night directly determines the day&apos;s discussions, votes, and ultimately who wins the game.
           </p>
-          
+
           <div className="mt-8 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 to-purple-950/40 p-6">
             <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <span>🌙</span> Key Night Phase Concepts
@@ -337,7 +337,7 @@ export default function WerewolfNightPhasePage() {
       >
         <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-6 md:p-8">
           <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6">Possible Night Outcomes</h3>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -488,7 +488,7 @@ export default function WerewolfNightPhasePage() {
             Practice Night Actions with AI
           </h2>
           <p className="text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-            The best way to master the night phase is through practice. Play unlimited games against AI opponents in Wolfcha 
+            The best way to master the night phase is through practice. Play unlimited games against AI opponents in Wolves House
             and experience every role&apos;s night actions firsthand.
           </p>
           <Link href="/" className="inline-block rounded-full bg-[var(--color-gold)] px-8 py-4 font-bold text-black hover:bg-[var(--color-gold-dark)]">
